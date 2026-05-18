@@ -1,18 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BGCSE Study</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  </head>
-  <body style="margin:0;background:#080d16">
-    <div id="root"></div>
-    <script type="text/babel" data-type="module">
-      // App code loads here
-    </script>
-    <script type="text/babel" src="App.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BGCSE Study</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#080d16;font-family:'Segoe UI',sans-serif;color:#e0e8f4}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const VALID_CODES = ["BGCSE2024","STUDY001","STUDY002","STUDY003","STUDY004","STUDY005"];
+const TEACHER_CODE = "TEACHER123";
+
+function App() {
+  const [user, setUser] = React.useState(null);
+  const [name, setName] = React.useState("");
+  const [code, setCode] = React.useState("");
+  const [error, setError] = React.useState("");
+
+  const login = () => {
+    if (!name.trim()) { setError("Enter your name"); return; }
+    const c = code.trim().toUpperCase();
+    if (c === TEACHER_CODE) setUser({name: name.trim(), role: "teacher"});
+    else if (VALID_CODES.includes(c)) setUser({name: name.trim(), role: "student", code: c});
+    else setError("Invalid code. Contact your teacher.");
+  };
+
+  if (!user) return (
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{width:"100%",maxWidth:380}}>
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <div style={{fontSize:28,fontWeight:700,color:"#e0e8ff",marginBottom:6}}>BGCSE<span style={{color:"#3b82f6"}}>.</span>study</div>
+          <div style={{color:"#3a4a6a",fontSize:13}}>Enter your details to continue</div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <input value={name} onChange={e=>{setName(e.target.value);setError("");}} placeholder="Your name" style={{padding:"13px 16px",background:"rgba(255,255,255,0.04)",border:"1.5px solid rgba(255,255,255,0.08)",borderRadius:10,color:"#e0e8ff",fontSize:14,outline:"none"}}/>
+          <input value={code} onChange={e=>{setCode(e.target.value);setError("");}} placeholder="Access code" style={{padding:"13px 16px",background:"rgba(255,255,255,0.04)",border:`1.5px solid ${error?"#ff5c8d":"rgba(255,255,255,0.08)"}`,borderRadius:10,color:"#e0e8ff",fontSize:14,outline:"none",letterSpacing:2}} onKeyDown={e=>e.key==="Enter"&&login()}/>
+          {error && <div style={{color:"#ff5c8d",fontSize:13,textAlign:"center"}}>{error}</div>}
+          <button onClick={login} style={{padding:14,background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer"}}>Enter →</button>
+        </div>
+        <div style={{textAlign:"center",marginTop:24,color:"#2a3a5a",fontSize:12}}>Don't have a code? Contact your teacher.</div>
+      </div>
+    </div>
+  );
+
+  if (user.role === "teacher") return (
+    <div style={{minHeight:"100vh",padding:24}}>
+      <div style={{maxWidth:600,margin:"0 auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
+          <div style={{fontSize:22,fontWeight:700}}>Teacher Dashboard</div>
+          <button onClick={()=>setUser(null)} style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,padding:"6px 14px",color:"#5a6a8a",cursor:"pointer"}}>Logout</button>
+        </div>
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:20,marginBottom:16}}>
+          <div style={{color:"#3b82f6",fontSize:11,letterSpacing:3,marginBottom:12}}>STUDENT ACCESS CODES</div>
+          {VALID_CODES.map(c=>(
+            <div key={c} style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+              <span style={{fontFamily:"monospace",color:"#3b82f6",fontSize:15,fontWeight:700}}>{c}</span>
+              <span style={{color:"#3a4a6a",fontSize:12}}>Share with 1 student</span>
+            </div>
+          ))}
+        </div>
+        <div style={{background:"rgba(59,130,246,0.07)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:12,padding:16}}>
+          <div style={{color:"#3b82f6",fontSize:11,letterSpacing:3,marginBottom:6}}>YOUR LINK TO SHARE</div>
+          <div style={{fontFamily:"monospace",color:"#60a5fa",fontSize:14}}>bgcse-study.netlify.app</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{minHeight:"100vh",padding:24}}>
+      <div style={{maxWidth:600,margin:"0 auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
+          <div style={{fontSize:20,fontWeight:700}}>BGCSE<span style={{color:"#3b82f6"}}>.</span>study</div>
+          <button onClick={()=>setUser(null)} style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,padding:"6px 14px",color:"#5a6a8a",cursor:"pointer",fontSize:12}}>{user.name.split(" ")[0]}</button>
+        </div>
+        <div style={{textAlign:"center",padding:60,color:"#3a4a6a"}}>
+          <div style={{fontSize:48,marginBottom:16}}>🎓</div>
+          <div style={{fontSize:20,color:"#e0e8ff",marginBottom:8}}>Welcome, {user.name.split(" ")[0]}!</div>
+          <div style={{fontSize:14}}>Full app loading — check back shortly for all subjects and topics.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
 </html>
