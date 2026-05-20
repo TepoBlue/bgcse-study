@@ -8,253 +8,336 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#080d16;font-family:'Segoe UI',sans-serif;color:#e0e8f4;min-height:100vh}
+*{box-sizing:border-box;margin:0;padding:0;transition:background .3s,color .3s}
 ::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes bounce{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}
-.fade{animation:fadeIn .35s ease}
-.card:hover{transform:translateY(-2px);transition:all .2s}
-input{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.08);border-radius:10px;color:#e0e8f4;font-size:14px;outline:none;padding:13px 16px;width:100%;font-family:'Segoe UI',sans-serif}
-button{cursor:pointer;font-family:'Segoe UI',sans-serif}
+::-webkit-scrollbar-thumb{background:rgba(128,128,128,0.3);border-radius:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-5px);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.fade{animation:fadeIn .4s cubic-bezier(.4,0,.2,1)}
+.slide{animation:slideIn .35s cubic-bezier(.4,0,.2,1)}
+.card-hover{transition:all .22s cubic-bezier(.4,0,.2,1)!important}
+.card-hover:hover{transform:translateY(-3px)!important;box-shadow:0 12px 32px rgba(0,0,0,0.4)!important}
+.btn-press:active{transform:scale(.97)!important}
+button{cursor:pointer;font-family:'Segoe UI',sans-serif;border:none;transition:all .18s}
+input{font-family:'Segoe UI',sans-serif;outline:none;border-radius:12px;padding:13px 16px;font-size:14px;width:100%}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState, useEffect, useRef} = React;
+const {useState,useEffect,useRef,useCallback}=React;
 
-// ── ACCESS CODES ──────────────────────────────────────────────────────────────
-const VALID_CODES = ["BGCSE2024","STUDY001","STUDY002","STUDY003","STUDY004","STUDY005","STUDY006","STUDY007","STUDY008","STUDY009","STUDY010"];
-const TEACHER_CODE = "TEACHER123";
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const VALID_CODES=["BGCSE2024","STUDY001","STUDY002","STUDY003","STUDY004","STUDY005","STUDY006","STUDY007","STUDY008","STUDY009","STUDY010"];
+const TEACHER_CODE="TEACHER123";
+const API_KEY="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";
 
-// ── BOTSWANA BGCSE SYLLABUS ───────────────────────────────────────────────────
-const SUBJECTS = [
-  {
-    id:"maths", label:"Mathematics", icon:"∑", color:"#3b82f6",
-    topics:[
-      "Number Systems & Place Value","Fractions, Decimals & Percentages","Ratio & Proportion",
-      "Indices & Standard Form","Algebra — Expressions & Simplification","Linear Equations & Inequalities",
-      "Simultaneous Equations","Quadratic Equations & Factorisation","Sequences & Patterns",
-      "Functions & Graphs","Coordinate Geometry","Angles & Parallel Lines",
-      "Triangles & Congruence","Pythagoras Theorem","Circle Theorems",
-      "Trigonometry — Sin, Cos, Tan","Sine & Cosine Rules","Mensuration — Perimeter & Area",
-      "Mensuration — Volume & Surface Area","Vectors","Matrices & Transformations",
-      "Transformation Geometry","Statistics — Data & Averages","Probability","Sets & Venn Diagrams"
-    ]
-  },
-  {
-    id:"physics", label:"Physics", icon:"⚡", color:"#f59e0b",
-    topics:[
-      "Measurements, Units & Significant Figures","Scalar & Vector Quantities",
-      "Distance, Speed & Velocity","Acceleration & Equations of Motion",
-      "Distance-Time & Velocity-Time Graphs","Forces & Newton's Laws of Motion",
-      "Momentum & Impulse","Work, Energy & Power","Efficiency & Energy Transfer",
-      "Pressure in Solids & Fluids","Archimedes Principle & Upthrust",
-      "Thermal Expansion","Heat Capacity & Specific Heat","Latent Heat & Change of State",
-      "Waves — Properties & Types","Light — Reflection & Refraction","Lenses & Optical Instruments",
-      "Sound Waves & Hearing","Static Electricity","Electric Circuits — Series & Parallel",
-      "Ohm's Law & Resistance","Electrical Power & Energy","Magnetism & Electromagnetism",
-      "Electromagnetic Induction","The Atom & Radioactivity","Nuclear Energy"
-    ]
-  },
-  {
-    id:"chemistry", label:"Chemistry", icon:"⚗", color:"#10b981",
-    topics:[
-      "Particle Theory — Solids, Liquids & Gases","Diffusion & Brownian Motion",
-      "Separation Techniques","Atomic Structure — Protons, Neutrons, Electrons",
-      "Electronic Configuration","The Periodic Table","Ionic Bonding",
-      "Covalent Bonding","Metallic Bonding","Writing Chemical Formulae",
-      "Balancing Chemical Equations","The Mole Concept","Stoichiometry & Calculations",
-      "Acids & Bases","Salts — Preparation & Properties","Redox Reactions",
-      "Electrolysis","Rates of Reaction","Energy Changes in Reactions",
-      "Reactivity Series of Metals","Extraction of Metals","Non-metals — Oxygen & Nitrogen",
-      "Non-metals — Carbon & Sulphur","Organic Chemistry — Alkanes & Alkenes",
-      "Organic Chemistry — Alcohols & Carboxylic Acids","Industrial Processes — Haber & Contact"
-    ]
-  },
-  {
-    id:"biology", label:"Biology", icon:"🧬", color:"#ec4899",
-    topics:[
-      "Characteristics of Living Things","Cell Structure — Plant & Animal Cells",
-      "Cell Organisation — Tissues & Organs","Diffusion","Osmosis","Active Transport",
-      "Biological Molecules — Carbohydrates & Lipids","Biological Molecules — Proteins",
-      "Enzymes & Their Action","Photosynthesis","Mineral Salts & Plant Nutrition",
-      "Human Digestive System","Absorption & Assimilation","Aerobic Respiration",
-      "Anaerobic Respiration","Gas Exchange in Humans","Gas Exchange in Plants",
-      "Transport in Plants — Xylem & Phloem","Human Circulatory System","Blood & Blood Groups",
-      "Excretion — Kidneys & Skin","Homeostasis & Temperature Regulation",
-      "Nervous System & Sense Organs","Hormones & Endocrine System",
-      "Human Reproduction","Plant Reproduction","Genetics & Inheritance",
-      "DNA & Genetic Engineering","Evolution & Natural Selection","Ecology & Food Chains",
-      "Human Impact on the Environment","Disease & Immunity"
-    ]
-  }
+const QUOTES=[
+  {q:"The secret of getting ahead is getting started.",a:"Mark Twain"},
+  {q:"Education is the most powerful weapon you can use to change the world.",a:"Nelson Mandela"},
+  {q:"Success is not final, failure is not fatal: it is the courage to continue that counts.",a:"Winston Churchill"},
+  {q:"The beautiful thing about learning is that no one can take it away from you.",a:"B.B. King"},
+  {q:"Believe you can and you're halfway there.",a:"Theodore Roosevelt"},
+  {q:"Hard work beats talent when talent doesn't work hard.",a:"Tim Notke"},
+  {q:"Your future is created by what you do today, not tomorrow.",a:"Robert Kiyosaki"},
+  {q:"Don't watch the clock; do what it does. Keep going.",a:"Sam Levenson"},
+  {q:"Dream big. Work hard. Stay focused.",a:"Unknown"},
+  {q:"Every expert was once a beginner.",a:"Unknown"},
+  {q:"You are capable of more than you know.",a:"Unknown"},
+  {q:"In Botswana we rise together. Study hard, shine bright.",a:"EduTee Tech 🇧🇼"},
+];
+
+const FORMULAS={
+  Mathematics:[
+    {name:"Quadratic Formula",formula:"x = (-b ± √(b²-4ac)) / 2a",topic:"Quadratic Equations"},
+    {name:"Pythagoras Theorem",formula:"a² + b² = c²",topic:"Pythagoras"},
+    {name:"Area of Circle",formula:"A = πr²",topic:"Mensuration"},
+    {name:"Circumference",formula:"C = 2πr",topic:"Mensuration"},
+    {name:"Volume of Cylinder",formula:"V = πr²h",topic:"Mensuration"},
+    {name:"Volume of Cone",formula:"V = ⅓πr²h",topic:"Mensuration"},
+    {name:"Volume of Sphere",formula:"V = 4/3 πr³",topic:"Mensuration"},
+    {name:"Gradient of Line",formula:"m = (y₂-y₁)/(x₂-x₁)",topic:"Coordinate Geometry"},
+    {name:"Equation of Line",formula:"y = mx + c",topic:"Coordinate Geometry"},
+    {name:"Sin Rule",formula:"a/sinA = b/sinB = c/sinC",topic:"Trigonometry"},
+    {name:"Cos Rule",formula:"a² = b² + c² - 2bc·cosA",topic:"Trigonometry"},
+    {name:"Area of Triangle",formula:"A = ½ab·sinC",topic:"Trigonometry"},
+    {name:"Nth Term",formula:"aₙ = a + (n-1)d",topic:"Sequences"},
+    {name:"Sum of AP",formula:"Sₙ = n/2(2a + (n-1)d)",topic:"Sequences"},
+    {name:"Probability",formula:"P(A) = favourable outcomes / total outcomes",topic:"Probability"},
+  ],
+  Physics:[
+    {name:"Speed",formula:"v = d/t",topic:"Motion"},
+    {name:"Acceleration",formula:"a = (v-u)/t",topic:"Motion"},
+    {name:"Force",formula:"F = ma",topic:"Newton's Laws"},
+    {name:"Weight",formula:"W = mg",topic:"Forces"},
+    {name:"Momentum",formula:"p = mv",topic:"Momentum"},
+    {name:"Work Done",formula:"W = Fd",topic:"Work & Energy"},
+    {name:"Power",formula:"P = W/t",topic:"Work & Energy"},
+    {name:"Kinetic Energy",formula:"KE = ½mv²",topic:"Work & Energy"},
+    {name:"Potential Energy",formula:"PE = mgh",topic:"Work & Energy"},
+    {name:"Pressure",formula:"P = F/A",topic:"Pressure"},
+    {name:"Pressure in Liquid",formula:"P = ρgh",topic:"Pressure"},
+    {name:"Ohm's Law",formula:"V = IR",topic:"Electricity"},
+    {name:"Electrical Power",formula:"P = VI = I²R",topic:"Electricity"},
+    {name:"Wave Speed",formula:"v = fλ",topic:"Waves"},
+    {name:"Equations of Motion 1",formula:"v = u + at",topic:"Motion"},
+    {name:"Equations of Motion 2",formula:"s = ut + ½at²",topic:"Motion"},
+    {name:"Equations of Motion 3",formula:"v² = u² + 2as",topic:"Motion"},
+  ],
+  Chemistry:[
+    {name:"Moles",formula:"n = m/M",topic:"Moles"},
+    {name:"Concentration",formula:"c = n/V",topic:"Moles"},
+    {name:"Moles from Volume (gas)",formula:"n = V/24 (at RTP)",topic:"Moles"},
+    {name:"Percentage Yield",formula:"yield% = (actual/theoretical) × 100",topic:"Stoichiometry"},
+    {name:"Atom Economy",formula:"atom economy = (useful product mass / total mass) × 100",topic:"Stoichiometry"},
+    {name:"pH",formula:"pH = -log[H⁺]",topic:"Acids & Bases"},
+    {name:"Relative Atomic Mass",formula:"Ar = (isotope mass × %) / 100",topic:"Atomic Structure"},
+  ],
+  Biology:[
+    {name:"Magnification",formula:"magnification = image size / actual size",topic:"Cell Structure"},
+    {name:"Photosynthesis",formula:"6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂",topic:"Photosynthesis"},
+    {name:"Aerobic Respiration",formula:"C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ATP",topic:"Respiration"},
+    {name:"Anaerobic (yeast)",formula:"glucose → ethanol + CO₂",topic:"Respiration"},
+    {name:"Anaerobic (muscle)",formula:"glucose → lactic acid",topic:"Respiration"},
+    {name:"BMI",formula:"BMI = mass(kg) / height²(m)",topic:"Nutrition"},
+    {name:"Water Potential",formula:"Ψ = Ψs + Ψp",topic:"Osmosis"},
+  ],
+};
+
+// BGCSE Exam date — October 2025
+const EXAM_DATE=new Date("2025-10-13");
+
+const SUBJECTS=[
+  {id:"maths",label:"Mathematics",icon:"∑",color:"#3b82f6",topics:["Number Systems & Place Value","Fractions, Decimals & Percentages","Ratio & Proportion","Indices & Standard Form","Algebra — Expressions & Simplification","Linear Equations & Inequalities","Simultaneous Equations","Quadratic Equations & Factorisation","Sequences & Patterns","Functions & Graphs","Coordinate Geometry","Angles & Parallel Lines","Triangles & Congruence","Pythagoras Theorem","Circle Theorems","Trigonometry — Sin, Cos, Tan","Sine & Cosine Rules","Mensuration — Perimeter & Area","Mensuration — Volume & Surface Area","Vectors","Matrices & Transformations","Transformation Geometry","Statistics — Data & Averages","Probability","Sets & Venn Diagrams"]},
+  {id:"physics",label:"Physics",icon:"⚡",color:"#f59e0b",topics:["Measurements, Units & Significant Figures","Scalar & Vector Quantities","Distance, Speed & Velocity","Acceleration & Equations of Motion","Distance-Time & Velocity-Time Graphs","Forces & Newton's Laws of Motion","Momentum & Impulse","Work, Energy & Power","Efficiency & Energy Transfer","Pressure in Solids & Fluids","Archimedes Principle & Upthrust","Thermal Expansion","Heat Capacity & Specific Heat","Latent Heat & Change of State","Waves — Properties & Types","Light — Reflection & Refraction","Lenses & Optical Instruments","Sound Waves & Hearing","Static Electricity","Electric Circuits — Series & Parallel","Ohm's Law & Resistance","Electrical Power & Energy","Magnetism & Electromagnetism","Electromagnetic Induction","The Atom & Radioactivity","Nuclear Energy"]},
+  {id:"chemistry",label:"Chemistry",icon:"⚗",color:"#10b981",topics:["Particle Theory — Solids, Liquids & Gases","Diffusion & Brownian Motion","Separation Techniques","Atomic Structure — Protons, Neutrons, Electrons","Electronic Configuration","The Periodic Table","Ionic Bonding","Covalent Bonding","Metallic Bonding","Writing Chemical Formulae","Balancing Chemical Equations","The Mole Concept","Stoichiometry & Calculations","Acids & Bases","Salts — Preparation & Properties","Redox Reactions","Electrolysis","Rates of Reaction","Energy Changes in Reactions","Reactivity Series of Metals","Extraction of Metals","Non-metals — Oxygen & Nitrogen","Non-metals — Carbon & Sulphur","Organic Chemistry — Alkanes & Alkenes","Organic Chemistry — Alcohols & Carboxylic Acids","Industrial Processes — Haber & Contact"]},
+  {id:"biology",label:"Biology",icon:"🧬",color:"#ec4899",topics:["Characteristics of Living Things","Cell Structure — Plant & Animal Cells","Cell Organisation — Tissues & Organs","Diffusion","Osmosis","Active Transport","Biological Molecules — Carbohydrates & Lipids","Biological Molecules — Proteins","Enzymes & Their Action","Photosynthesis","Mineral Salts & Plant Nutrition","Human Digestive System","Absorption & Assimilation","Aerobic Respiration","Anaerobic Respiration","Gas Exchange in Humans","Gas Exchange in Plants","Transport in Plants — Xylem & Phloem","Human Circulatory System","Blood & Blood Groups","Excretion — Kidneys & Skin","Homeostasis & Temperature Regulation","Nervous System & Sense Organs","Hormones & Endocrine System","Human Reproduction","Plant Reproduction","Genetics & Inheritance","DNA & Genetic Engineering","Evolution & Natural Selection","Ecology & Food Chains","Human Impact on the Environment","Disease & Immunity"]},
 ];
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
-const store = {
+const store={
   get:(k)=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
-  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}},
 };
 
 // ── CLAUDE API ────────────────────────────────────────────────────────────────
-async function claude(prompt, system) {
-  const r = await fetch("https://api.anthropic.com/v1/messages",{
+async function claude(prompt,system){
+  const r=await fetch("https://api.anthropic.com/v1/messages",{
     method:"POST",
-    headers:{"Content-Type":"application/json","x-api-key":"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","anthropic-version":"2023-06-01"},
+    headers:{"Content-Type":"application/json","x-api-key":API_KEY,"anthropic-version":"2023-06-01"},
     body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system,messages:[{role:"user",content:prompt}]})
   });
-  const d = await r.json();
+  const d=await r.json();
   return d.content?.map(b=>b.text||"").join("")||"";
 }
 
 async function getNotes(subject,topic){
-  const raw = await claude(
-    `Write BGCSE Botswana study notes for "${topic}" in ${subject}. Return ONLY valid JSON: {"summary":"2-3 sentences","keyPoints":["p1","p2","p3","p4","p5"],"definitions":[{"term":"word","meaning":"def"}],"formula":"formula or null","rememberThis":"most important exam tip"}`,
-    "You are a BGCSE teacher in Botswana. Align strictly to the Botswana BGCSE syllabus. Return ONLY raw JSON."
-  );
+  const raw=await claude(`Write BGCSE Botswana study notes for "${topic}" in ${subject}. Return ONLY valid JSON: {"summary":"2-3 sentences","keyPoints":["p1","p2","p3","p4","p5"],"definitions":[{"term":"word","meaning":"def"}],"formula":"formula or null","rememberThis":"most important exam tip"}`,"You are a BGCSE teacher in Botswana. Align strictly to the Botswana BGCSE syllabus. Return ONLY raw JSON.");
   return JSON.parse(raw.replace(/```json|```/g,"").trim());
 }
 
 async function getExam(subject,topic){
-  const raw = await claude(
-    `Create a BGCSE Botswana exam question for "${topic}" in ${subject}. Return ONLY valid JSON: {"question":"full question","marks":4,"parts":[{"part":"(a)","question":"sub q","marks":2,"answer":"model answer","working":"step by step"},{"part":"(b)","question":"sub q","marks":2,"answer":"model answer","working":"step by step"}],"examinerNote":"tip"}`,
-    "You are a BGCSE examiner in Botswana. Return ONLY raw JSON."
-  );
+  const raw=await claude(`Create a BGCSE Botswana exam question for "${topic}" in ${subject}. Return ONLY valid JSON: {"question":"full question","marks":4,"parts":[{"part":"(a)","question":"sub q","marks":2,"answer":"model answer","working":"step by step"},{"part":"(b)","question":"sub q","marks":2,"answer":"model answer","working":"step by step"}],"examinerNote":"tip"}`,"You are a BGCSE examiner in Botswana. Return ONLY raw JSON.");
   return JSON.parse(raw.replace(/```json|```/g,"").trim());
 }
 
 async function tutor(msgs,subject,topic){
-  return claude(
-    msgs.map(m=>m.role+": "+m.content).join("\n"),
-    `You are an expert BGCSE tutor in Botswana for ${subject}, topic "${topic}". Be encouraging and clear. Use step-by-step explanations aligned to the Botswana BGCSE syllabus. Plain text only.`
+  return claude(msgs.map(m=>m.role+": "+m.content).join("\n"),`You are an expert BGCSE tutor in Botswana for ${subject}, topic "${topic}". Be encouraging and clear. Use step-by-step explanations aligned to the Botswana BGCSE syllabus. Plain text only.`);
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+const DARK={bg:"#080d16",card:"rgba(255,255,255,0.03)",border:"rgba(255,255,255,0.08)",text:"#e0e8f4",sub:"#6a7a9a",muted:"#3a4a6a",header:"rgba(8,13,22,0.97)"};
+const LIGHT={bg:"#f0f4ff",card:"rgba(255,255,255,0.9)",border:"rgba(0,0,50,0.1)",text:"#1a2040",sub:"#4a5a7a",muted:"#8a9ab8",header:"rgba(240,244,255,0.97)"};
+
+// ── SKELETON ──────────────────────────────────────────────────────────────────
+const Skel=({w="100%",h=16,mb=10,t})=>(
+  <div style={{width:w,height:h,marginBottom:mb,borderRadius:6,background:t?.card||"rgba(255,255,255,0.06)",animation:"shimmer 1.4s infinite",backgroundImage:"linear-gradient(90deg,transparent 25%,rgba(255,255,255,0.08) 50%,transparent 75%)",backgroundSize:"200% 100%"}}/>
+);
+
+// ── COUNTDOWN ────────────────────────────────────────────────────────────────
+function Countdown({t}){
+  const [days,setDays]=useState(0);
+  useEffect(()=>{
+    const calc=()=>{
+      const now=new Date();
+      const diff=EXAM_DATE-now;
+      setDays(diff>0?Math.ceil(diff/(1000*60*60*24)):0);
+    };
+    calc();
+    const i=setInterval(calc,60000);
+    return()=>clearInterval(i);
+  },[]);
+  const color=days<30?"#ff5c8d":days<60?"#f0a500":"#4ade80";
+  return(
+    <div style={{background:t.card,border:`1.5px solid ${color}33`,borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:16,marginBottom:16}}>
+      <div style={{textAlign:"center",minWidth:60}}>
+        <div style={{fontSize:32,fontWeight:800,color,lineHeight:1}}>{days}</div>
+        <div style={{fontSize:10,color:t.muted,letterSpacing:2,textTransform:"uppercase"}}>Days</div>
+      </div>
+      <div>
+        <div style={{fontWeight:700,fontSize:14,color:t.text}}>BGCSE Exam Countdown</div>
+        <div style={{fontSize:12,color:t.sub,marginTop:2}}>October 2025 · Stay focused! 💪</div>
+      </div>
+      <div style={{marginLeft:"auto",fontSize:24}}>🎯</div>
+    </div>
   );
 }
 
-// ── SPINNER ───────────────────────────────────────────────────────────────────
-const Spin = ()=>(
-  <div style={{display:"flex",flexDirection:"column",gap:16,padding:"20px 0"}}>
-    {[90,70,80,60].map((w,i)=>(
-      <div key={i} style={{height:14,width:w+"%",borderRadius:4,background:"rgba(255,255,255,0.06)",animation:"spin 1.4s linear infinite",opacity:.6}}/>
-    ))}
-  </div>
-);
+// ── MOTIVATIONAL QUOTE ────────────────────────────────────────────────────────
+function Quote({t}){
+  const q=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  return(
+    <div style={{background:`linear-gradient(135deg,#3b82f618,#a78bfa18)`,border:"1px solid rgba(59,130,246,0.2)",borderRadius:14,padding:"14px 18px",marginBottom:16}}>
+      <div style={{fontSize:18,color:"#3b82f6",marginBottom:6}}>"</div>
+      <div style={{fontStyle:"italic",color:t.text,fontSize:14,lineHeight:1.6,marginBottom:6}}>{q.q}</div>
+      <div style={{fontSize:11,color:t.muted}}>— {q.a}</div>
+    </div>
+  );
+}
 
-// ── LOGIN ─────────────────────────────────────────────────────────────────────
-function Login({onLogin}){
-  const [name,setName]=useState("");
-  const [code,setCode]=useState("");
-  const [err,setErr]=useState("");
-  const [loading,setLoading]=useState(false);
-
-  const go=()=>{
-    if(!name.trim()){setErr("Please enter your name");return}
-    if(!code.trim()){setErr("Please enter your access code");return}
-    setLoading(true);
-    setTimeout(()=>{
-      const c=code.trim().toUpperCase();
-      if(c===TEACHER_CODE) onLogin({name:name.trim(),role:"teacher",code:c});
-      else if(VALID_CODES.includes(c)) onLogin({name:name.trim(),role:"student",code:c});
-      else{setErr("Invalid code. Contact your teacher.");setLoading(false);}
-    },500);
-  };
+// ── FORMULA SHEET ─────────────────────────────────────────────────────────────
+function FormulaSheet({t}){
+  const [activeSubj,setActiveSubj]=useState("Mathematics");
+  const [search,setSearch]=useState("");
+  const formulas=FORMULAS[activeSubj]||[];
+  const filtered=formulas.filter(f=>f.name.toLowerCase().includes(search.toLowerCase())||f.formula.toLowerCase().includes(search.toLowerCase())||f.topic.toLowerCase().includes(search.toLowerCase()));
+  const subj=SUBJECTS.find(s=>s.label===activeSubj);
 
   return(
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div style={{width:"100%",maxWidth:380,animation:"fadeIn .4s ease"}}>
-        <div style={{textAlign:"center",marginBottom:40}}>
-          <div style={{fontSize:32,fontWeight:800,color:"#e0e8ff",letterSpacing:-1,marginBottom:6}}>
-            Edu<span style={{color:"#3b82f6"}}>Tee</span><span style={{color:"#5a6a8a",fontSize:20}}> Tech</span>
-          </div>
-          <div style={{color:"#3a4a6a",fontSize:13}}>Botswana BGCSE Study Platform</div>
-          <div style={{color:"#1e2a3a",fontSize:11,marginTop:4}}>by EduTee Tech Company · Botswana 🇧🇼</div>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <div>
-            <div style={{fontSize:10,letterSpacing:3,color:"#3a4a6a",marginBottom:8,textTransform:"uppercase"}}>Your Name</div>
-            <input value={name} onChange={e=>{setName(e.target.value);setErr("")}} placeholder="e.g. Bofelo Mokoena"/>
-          </div>
-          <div>
-            <div style={{fontSize:10,letterSpacing:3,color:"#3a4a6a",marginBottom:8,textTransform:"uppercase"}}>Access Code</div>
-            <input value={code} onChange={e=>{setCode(e.target.value);setErr("")}} placeholder="Given by your teacher" onKeyDown={e=>e.key==="Enter"&&go()} style={{letterSpacing:3,border:`1.5px solid ${err?"#ff5c8d":"rgba(255,255,255,0.08)"}`}}/>
-          </div>
-          {err&&<div style={{color:"#ff5c8d",fontSize:13,textAlign:"center"}}>{err}</div>}
-          <button onClick={go} disabled={loading} style={{padding:14,background:loading?"#1a2535":"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontWeight:700,fontSize:15,marginTop:4,transition:"background .2s"}}>
-            {loading?"Checking...":"Enter →"}
+    <div style={{animation:"fadeIn .4s ease"}}>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:6,textTransform:"uppercase"}}>Formula Sheet</div>
+        <div style={{fontSize:22,fontWeight:800,color:t.text}}>Quick Reference 📐</div>
+      </div>
+
+      <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:4}}>
+        {SUBJECTS.map(s=>(
+          <button key={s.id} onClick={()=>{setActiveSubj(s.label);setSearch("")}} style={{padding:"7px 14px",borderRadius:100,background:activeSubj===s.label?s.color:"transparent",color:activeSubj===s.label?"#fff":t.sub,border:`1.5px solid ${activeSubj===s.label?s.color:t.border}`,fontSize:12,fontWeight:activeSubj===s.label?700:400,whiteSpace:"nowrap",flexShrink:0}}>
+            {s.icon} {s.label}
           </button>
-        </div>
-        <div style={{textAlign:"center",marginTop:28,color:"#2a3a5a",fontSize:12}}>
-          🇧🇼 Aligned to the Botswana BGCSE Syllabus<br/>
-          <span style={{color:"#1a2535"}}>© EduTee Tech Company — All rights reserved</span>
-        </div>
+        ))}
+      </div>
+
+      <div style={{position:"relative",marginBottom:14}}>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search formulas..." style={{background:t.card,border:`1.5px solid ${t.border}`,color:t.text,paddingLeft:38}}/>
+        <div style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",color:t.muted,fontSize:14}}>⌕</div>
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {filtered.map((f,i)=>(
+          <div key={i} style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:12,padding:"14px 16px",animation:`fadeIn .3s ease ${i*.03}s both`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+              <div style={{fontWeight:600,fontSize:13,color:t.text}}>{f.name}</div>
+              <div style={{fontSize:10,color:subj?.color,background:`${subj?.color}18`,border:`1px solid ${subj?.color}33`,borderRadius:100,padding:"2px 8px",flexShrink:0,marginLeft:8}}>{f.topic}</div>
+            </div>
+            <div style={{fontFamily:"monospace",fontSize:15,color:subj?.color,background:`${subj?.color}0d`,borderRadius:8,padding:"10px 14px",letterSpacing:.5}}>
+              {f.formula}
+            </div>
+          </div>
+        ))}
+        {filtered.length===0&&(
+          <div style={{textAlign:"center",padding:40,color:t.muted,fontSize:13}}>No formulas match "{search}"</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── BOOKMARKS ─────────────────────────────────────────────────────────────────
+function BookmarksView({t,onSelectTopic,userCode}){
+  const bookmarks=store.get(`bm_${userCode}`)||[];
+
+  if(bookmarks.length===0) return(
+    <div style={{textAlign:"center",padding:"60px 20px",color:t.muted,animation:"fadeIn .4s ease"}}>
+      <div style={{fontSize:48,marginBottom:14}}>🔖</div>
+      <div style={{fontWeight:700,fontSize:16,color:t.text,marginBottom:8}}>No Bookmarks Yet</div>
+      <div style={{fontSize:13,lineHeight:1.6}}>When studying a topic tap the 🔖 bookmark icon to save it here for quick access.</div>
+    </div>
+  );
+
+  return(
+    <div style={{animation:"fadeIn .4s ease"}}>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:6,textTransform:"uppercase"}}>Saved Topics</div>
+        <div style={{fontSize:22,fontWeight:800,color:t.text}}>My Bookmarks 🔖</div>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {bookmarks.map((b,i)=>{
+          const subj=SUBJECTS.find(s=>s.label===b.subject);
+          return(
+            <div key={i} className="card-hover" onClick={()=>onSelectTopic(b.subject,b.topic,b.subjectId)} style={{background:t.card,border:`1px solid ${subj?.color}22`,borderRadius:12,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,animation:`fadeIn .3s ease ${i*.05}s both`}}>
+              <div style={{width:40,height:40,borderRadius:10,background:`${subj?.color}18`,border:`1.5px solid ${subj?.color}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{subj?.icon}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:600,fontSize:14,color:t.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{b.topic}</div>
+                <div style={{fontSize:11,color:subj?.color,marginTop:2}}>{b.subject}</div>
+              </div>
+              <div style={{color:t.muted,fontSize:18}}>→</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
 // ── NOTES TAB ─────────────────────────────────────────────────────────────────
-function Notes({subject,topic,color}){
+function Notes({subject,topic,color,t}){
   const [notes,setNotes]=useState(null);
   const [loading,setLoading]=useState(true);
-
-  const load=async()=>{
-    setLoading(true);setNotes(null);
-    try{setNotes(await getNotes(subject,topic))}catch{}
-    setLoading(false);
-  };
+  const load=async()=>{setLoading(true);setNotes(null);try{setNotes(await getNotes(subject,topic))}catch{}setLoading(false)};
   useEffect(()=>{load()},[topic]);
 
-  if(loading) return <Spin/>;
-  if(!notes) return <button onClick={load} style={{padding:"10px 24px",background:color,border:"none",borderRadius:8,color:"#fff",fontWeight:600,cursor:"pointer"}}>Retry</button>;
+  if(loading) return <div>{[90,70,80,60,95].map((w,i)=><Skel key={i} w={`${w}%`} h={i===0?20:14} mb={12} t={t}/>)}</div>;
+  if(!notes) return <button onClick={load} className="btn-press" style={{padding:"11px 28px",background:color,border:"none",borderRadius:10,color:"#fff",fontWeight:700,fontSize:14}}>Retry ↺</button>;
 
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:14,animation:"fadeIn .3s ease"}}>
-      <div style={{background:`${color}0d`,border:`1.5px solid ${color}30`,borderRadius:12,padding:"16px 18px"}}>
+    <div style={{display:"flex",flexDirection:"column",gap:14,animation:"fadeIn .35s ease"}}>
+      <div style={{background:`${color}0d`,border:`1.5px solid ${color}30`,borderRadius:14,padding:"16px 18px"}}>
         <div style={{fontSize:10,letterSpacing:3,color,marginBottom:8,textTransform:"uppercase"}}>Overview</div>
-        <div style={{color:"#c0d0e8",fontSize:14,lineHeight:1.7}}>{notes.summary}</div>
+        <div style={{color:t.text,fontSize:14,lineHeight:1.75}}>{notes.summary}</div>
       </div>
 
-      <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"16px 18px"}}>
-        <div style={{fontSize:10,letterSpacing:3,color:"#5a6a8a",marginBottom:12,textTransform:"uppercase"}}>Key Points</div>
+      <div style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:14,padding:"16px 18px"}}>
+        <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:12,textTransform:"uppercase"}}>Key Points</div>
         {notes.keyPoints?.map((p,i)=>(
           <div key={i} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
-            <div style={{width:22,height:22,borderRadius:6,background:`${color}20`,border:`1px solid ${color}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color,flexShrink:0,fontWeight:700}}>{i+1}</div>
-            <div style={{color:"#b0c0d8",fontSize:14,lineHeight:1.6}}>{p}</div>
+            <div style={{width:24,height:24,borderRadius:7,background:`${color}20`,border:`1.5px solid ${color}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color,flexShrink:0,fontWeight:800}}>{i+1}</div>
+            <div style={{color:t.text,fontSize:14,lineHeight:1.65}}>{p}</div>
           </div>
         ))}
       </div>
 
       {notes.formula&&(
-        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"14px 18px",display:"flex",gap:14,alignItems:"center"}}>
-          <div style={{fontSize:20,color:"#4a5a7a"}}>ƒ</div>
+        <div style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:14,padding:"14px 18px",display:"flex",gap:14,alignItems:"center"}}>
+          <div style={{fontSize:22,color:t.muted}}>ƒ</div>
           <div>
-            <div style={{fontSize:10,letterSpacing:3,color:"#3a4a6a",marginBottom:4,textTransform:"uppercase"}}>Formula</div>
-            <div style={{fontFamily:"monospace",fontSize:15,color:"#a0c0e0"}}>{notes.formula}</div>
+            <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:4,textTransform:"uppercase"}}>Formula</div>
+            <div style={{fontFamily:"monospace",fontSize:16,color,letterSpacing:.5}}>{notes.formula}</div>
           </div>
         </div>
       )}
 
       {notes.definitions?.length>0&&(
-        <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"16px 18px"}}>
-          <div style={{fontSize:10,letterSpacing:3,color:"#5a6a8a",marginBottom:12,textTransform:"uppercase"}}>Key Definitions</div>
+        <div style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:14,padding:"16px 18px"}}>
+          <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:12,textTransform:"uppercase"}}>Key Definitions</div>
           {notes.definitions.map((d,i)=>(
-            <div key={i} style={{marginBottom:8,paddingBottom:8,borderBottom:i<notes.definitions.length-1?"1px solid rgba(255,255,255,0.04)":"none"}}>
-              <span style={{color,fontWeight:600,fontSize:13}}>{d.term}: </span>
-              <span style={{color:"#8a9ab8",fontSize:13}}>{d.meaning}</span>
+            <div key={i} style={{marginBottom:9,paddingBottom:9,borderBottom:i<notes.definitions.length-1?`1px solid ${t.border}`:"none"}}>
+              <span style={{color,fontWeight:700,fontSize:13}}>{d.term}: </span>
+              <span style={{color:t.sub,fontSize:13}}>{d.meaning}</span>
             </div>
           ))}
         </div>
       )}
 
-      <div style={{background:"rgba(240,165,0,0.07)",border:"1px solid rgba(240,165,0,0.2)",borderRadius:12,padding:"14px 18px"}}>
+      <div style={{background:"rgba(240,165,0,0.08)",border:"1.5px solid rgba(240,165,0,0.25)",borderRadius:14,padding:"14px 18px"}}>
         <div style={{fontSize:10,letterSpacing:3,color:"#f0a500",marginBottom:6,textTransform:"uppercase"}}>⭐ Remember This</div>
-        <div style={{color:"#c0a060",fontSize:13,lineHeight:1.6}}>{notes.rememberThis}</div>
+        <div style={{color:"#c0a060",fontSize:13,lineHeight:1.65}}>{notes.rememberThis}</div>
       </div>
 
-      <button onClick={load} style={{padding:"10px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:8,color:"#6a7a9a",fontSize:13}}>
+      <button onClick={load} className="btn-press" style={{padding:"11px",background:t.card,border:`1px solid ${t.border}`,borderRadius:10,color:t.sub,fontSize:13}}>
         Regenerate Notes ↺
       </button>
     </div>
@@ -262,23 +345,18 @@ function Notes({subject,topic,color}){
 }
 
 // ── EXAM TAB ──────────────────────────────────────────────────────────────────
-function Exam({subject,topic,color,user,onResult}){
+function Exam({subject,topic,color,user,onResult,t}){
   const [exam,setExam]=useState(null);
   const [loading,setLoading]=useState(true);
   const [revealed,setRevealed]=useState({});
   const [marks,setMarks]=useState({});
   const [score,setScore]=useState(null);
 
-  const load=async()=>{
-    setLoading(true);setExam(null);setRevealed({});setMarks({});setScore(null);
-    try{setExam(await getExam(subject,topic))}catch{}
-    setLoading(false);
-  };
+  const load=async()=>{setLoading(true);setExam(null);setRevealed({});setMarks({});setScore(null);try{setExam(await getExam(subject,topic))}catch{}setLoading(false)};
   useEffect(()=>{load()},[topic]);
 
   const markPart=(i,m)=>{
-    const nm={...marks,[i]:m};
-    setMarks(nm);
+    const nm={...marks,[i]:m};setMarks(nm);
     if(exam?.parts&&Object.keys(nm).length===exam.parts.length){
       const total=exam.parts.reduce((s,p)=>s+p.marks,0);
       const got=Object.values(nm).reduce((a,b)=>a+b,0);
@@ -290,52 +368,45 @@ function Exam({subject,topic,color,user,onResult}){
 
   const sc=p=>p>=70?"#4ade80":p>=40?"#f0a500":"#ff5c8d";
 
-  if(loading) return <Spin/>;
-  if(!exam) return <button onClick={load} style={{padding:"10px 24px",background:color,border:"none",borderRadius:8,color:"#fff",fontWeight:600,cursor:"pointer"}}>Retry</button>;
+  if(loading) return <div>{[90,70,80,60,95].map((w,i)=><Skel key={i} w={`${w}%`} h={i===0?20:14} mb={14} t={t}/>)}</div>;
+  if(!exam) return <button onClick={load} className="btn-press" style={{padding:"11px 28px",background:color,border:"none",borderRadius:10,color:"#fff",fontWeight:700}}>Retry ↺</button>;
 
   return(
-    <div style={{animation:"fadeIn .3s ease"}}>
+    <div style={{animation:"fadeIn .35s ease"}}>
       <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-        <div style={{fontSize:10,letterSpacing:3,color:"#3a4a6a",textTransform:"uppercase"}}>Exam Question</div>
+        <div style={{fontSize:10,letterSpacing:3,color:t.muted,textTransform:"uppercase"}}>Exam Question</div>
         <div style={{fontSize:11,color,background:`${color}18`,border:`1px solid ${color}44`,borderRadius:100,padding:"3px 10px"}}>[{exam.marks} marks]</div>
       </div>
-
-      <div style={{background:`${color}0d`,border:`1.5px solid ${color}30`,borderRadius:12,padding:"16px 18px",marginBottom:18}}>
-        <div style={{color:"#d0daea",fontSize:15,lineHeight:1.7}}>{exam.question}</div>
+      <div style={{background:`${color}0d`,border:`1.5px solid ${color}30`,borderRadius:14,padding:"16px 18px",marginBottom:18}}>
+        <div style={{color:t.text,fontSize:15,lineHeight:1.7}}>{exam.question}</div>
       </div>
 
       {exam.parts?.map((part,i)=>(
-        <div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"16px 18px",marginBottom:12}}>
+        <div key={i} style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:14,padding:"16px 18px",marginBottom:12}}>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-            <div>
-              <span style={{color,fontWeight:700,fontSize:13}}>{part.part} </span>
-              <span style={{color:"#c0d0e8",fontSize:14}}>{part.question}</span>
-            </div>
-            <span style={{fontSize:11,color:"#3a4a6a",flexShrink:0,marginLeft:8}}>[{part.marks}m]</span>
+            <div><span style={{color,fontWeight:700,fontSize:13}}>{part.part} </span><span style={{color:t.text,fontSize:14}}>{part.question}</span></div>
+            <span style={{fontSize:11,color:t.muted,flexShrink:0,marginLeft:8}}>[{part.marks}m]</span>
           </div>
-
           {!revealed[i]?(
-            <button onClick={()=>setRevealed(r=>({...r,[i]:true}))} style={{padding:"9px 18px",background:`${color}18`,border:`1px solid ${color}44`,borderRadius:8,color,fontSize:13}}>
+            <button onClick={()=>setRevealed(r=>({...r,[i]:true}))} className="btn-press" style={{padding:"9px 18px",background:`${color}18`,border:`1px solid ${color}44`,borderRadius:9,color,fontSize:13}}>
               Show Answer & Working
             </button>
           ):(
             <div style={{animation:"fadeIn .3s ease"}}>
-              <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
-                <div style={{fontSize:10,letterSpacing:2,color:"#3a4a6a",marginBottom:6,textTransform:"uppercase"}}>Step-by-Step Working</div>
+              <div style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:10,padding:"12px 14px",marginBottom:10}}>
+                <div style={{fontSize:10,letterSpacing:2,color:t.muted,marginBottom:6,textTransform:"uppercase"}}>Step-by-Step Working</div>
                 <div style={{fontFamily:"monospace",fontSize:12,color:"#7a9a8a",lineHeight:1.9,whiteSpace:"pre-wrap"}}>{part.working}</div>
               </div>
-              <div style={{background:"rgba(74,222,128,0.08)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:8,padding:"10px 14px",marginBottom:12}}>
+              <div style={{background:"rgba(74,222,128,0.08)",border:"1px solid rgba(74,222,128,0.25)",borderRadius:10,padding:"10px 14px",marginBottom:12}}>
                 <div style={{fontSize:10,letterSpacing:2,color:"#4ade80",marginBottom:4,textTransform:"uppercase"}}>Model Answer</div>
                 <div style={{color:"#90c090",fontSize:13,lineHeight:1.6}}>{part.answer}</div>
               </div>
               {marks[i]===undefined?(
                 <div>
-                  <div style={{color:"#5a6a8a",fontSize:12,marginBottom:8}}>How many marks did you score?</div>
+                  <div style={{color:t.muted,fontSize:12,marginBottom:8}}>How many marks did you score?</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     {[...Array(part.marks+1)].map((_,m)=>(
-                      <button key={m} onClick={()=>markPart(i,m)} style={{padding:"7px 16px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"#8a9ab8",fontSize:13}}>
-                        {m}/{part.marks}
-                      </button>
+                      <button key={m} onClick={()=>markPart(i,m)} className="btn-press" style={{padding:"7px 16px",background:t.card,border:`1px solid ${t.border}`,borderRadius:8,color:t.sub,fontSize:13}}>{m}/{part.marks}</button>
                     ))}
                   </div>
                 </div>
@@ -348,30 +419,28 @@ function Exam({subject,topic,color,user,onResult}){
       ))}
 
       {score&&(
-        <div style={{background:`${sc(score.pct)}18`,border:`1.5px solid ${sc(score.pct)}`,borderRadius:12,padding:"18px 20px",marginBottom:16,animation:"fadeIn .4s ease"}}>
+        <div style={{background:`${sc(score.pct)}12`,border:`1.5px solid ${sc(score.pct)}`,borderRadius:14,padding:"18px 20px",marginBottom:16,animation:"pulse .5s ease"}}>
           <div style={{fontSize:10,letterSpacing:2,color:sc(score.pct),marginBottom:6,textTransform:"uppercase"}}>Your Score</div>
-          <div style={{fontSize:32,fontWeight:700,color:"#e0e8ff",marginBottom:4}}>{score.got}/{score.total}</div>
-          <div style={{color:"#6a7a9a",fontSize:13}}>{score.pct}% · {score.pct>=70?"Excellent! 🎉":score.pct>=40?"Good effort — review the working 📖":"Keep practising! Study the notes first 💪"}</div>
+          <div style={{fontSize:36,fontWeight:800,color:t.text,marginBottom:4}}>{score.got}/{score.total}</div>
+          <div style={{color:t.sub,fontSize:13}}>{score.pct}% · {score.pct>=70?"Excellent! 🎉":score.pct>=40?"Good effort — review the working 📖":"Keep practising — study notes first 💪"}</div>
         </div>
       )}
 
       {exam.examinerNote&&(
-        <div style={{background:"rgba(240,165,0,0.07)",border:"1px solid rgba(240,165,0,0.2)",borderRadius:10,padding:"12px 16px",marginBottom:16}}>
+        <div style={{background:"rgba(240,165,0,0.07)",border:"1px solid rgba(240,165,0,0.2)",borderRadius:12,padding:"12px 16px",marginBottom:16}}>
           <div style={{fontSize:10,letterSpacing:2,color:"#f0a500",marginBottom:4,textTransform:"uppercase"}}>💡 Examiner Note</div>
           <div style={{color:"#b09050",fontSize:13,lineHeight:1.6}}>{exam.examinerNote}</div>
         </div>
       )}
 
-      <button onClick={load} style={{padding:"12px 28px",background:color,border:"none",borderRadius:8,color:"#fff",fontWeight:700,fontSize:14}}>
-        New Question →
-      </button>
+      <button onClick={load} className="btn-press" style={{padding:"12px 28px",background:color,border:"none",borderRadius:10,color:"#fff",fontWeight:700,fontSize:14}}>Next Question →</button>
     </div>
   );
 }
 
 // ── TUTOR TAB ─────────────────────────────────────────────────────────────────
-function Tutor({subject,topic,color,name}){
-  const [msgs,setMsgs]=useState([{role:"assistant",content:`Hi ${name}! 👋 I'm your BGCSE AI tutor for ${subject} — "${topic}". Ask me anything and I'll explain it step by step!`}]);
+function Tutor({subject,topic,color,name,t}){
+  const [msgs,setMsgs]=useState([{role:"assistant",content:`Hi ${name}! 👋 I'm your BGCSE AI tutor for ${subject} — "${topic}". Ask me anything and I'll explain step by step!`}]);
   const [input,setInput]=useState("");
   const [loading,setLoading]=useState(false);
   const bottom=useRef();
@@ -379,33 +448,29 @@ function Tutor({subject,topic,color,name}){
   useEffect(()=>{bottom.current?.scrollIntoView({behavior:"smooth"})},[msgs]);
 
   const send=async()=>{
-    const t=input.trim();
-    if(!t||loading) return;
-    const nm=[...msgs,{role:"user",content:t}];
+    const txt=input.trim();
+    if(!txt||loading) return;
+    const nm=[...msgs,{role:"user",content:txt}];
     setMsgs(nm);setInput("");setLoading(true);
-    try{
-      const r=await tutor(nm,subject,topic);
-      setMsgs(m=>[...m,{role:"assistant",content:r}]);
-    }catch{
-      setMsgs(m=>[...m,{role:"assistant",content:"Sorry, connection error. Please try again!"}]);
-    }
+    try{const r=await tutor(nm,subject,topic);setMsgs(m=>[...m,{role:"assistant",content:r}]);}
+    catch{setMsgs(m=>[...m,{role:"assistant",content:"Sorry, connection error. Please try again!"}]);}
     setLoading(false);
   };
 
-  const quick=[`Explain ${topic} simply`,"Give me a worked example","What are common exam mistakes?","How is this tested in BGCSE?"];
+  const quick=[`Explain ${topic} simply`,"Give me a worked example","Common exam mistakes?","How is this tested in BGCSE?"];
 
   return(
     <div style={{display:"flex",flexDirection:"column",minHeight:400}}>
       <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:12,paddingBottom:12,maxHeight:"50vh"}}>
         {msgs.map((m,i)=>(
-          <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
-            <div style={{maxWidth:"85%",background:m.role==="user"?`linear-gradient(135deg,${color},${color}aa)`:"rgba(255,255,255,0.05)",border:m.role==="user"?"none":"1px solid rgba(255,255,255,0.08)",borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",padding:"12px 16px",color:m.role==="user"?"#fff":"#c0d0e8",fontSize:14,lineHeight:1.65}}>
+          <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",animation:"fadeIn .2s ease"}}>
+            <div style={{maxWidth:"85%",background:m.role==="user"?`linear-gradient(135deg,${color},${color}cc)`:`${t.card}`,border:m.role==="user"?"none":`1px solid ${t.border}`,borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"12px 16px",color:m.role==="user"?"#fff":t.text,fontSize:14,lineHeight:1.65,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}>
               {m.content}
             </div>
           </div>
         ))}
         {loading&&(
-          <div style={{display:"flex",gap:5,padding:"10px 14px",background:"rgba(255,255,255,0.04)",borderRadius:"16px 16px 16px 4px",width:"fit-content"}}>
+          <div style={{display:"flex",gap:5,padding:"10px 14px",background:t.card,borderRadius:"18px 18px 18px 4px",width:"fit-content",border:`1px solid ${t.border}`}}>
             {[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:color,animation:`bounce 1s ${i*.15}s infinite`}}/>)}
           </div>
         )}
@@ -415,40 +480,41 @@ function Tutor({subject,topic,color,name}){
       {msgs.length===1&&(
         <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12,marginTop:8}}>
           {quick.map(p=>(
-            <button key={p} onClick={()=>setInput(p)} style={{padding:"7px 12px",background:"rgba(255,255,255,0.04)",border:`1px solid ${color}33`,borderRadius:100,color:"#6a7a9a",fontSize:12}}>
+            <button key={p} onClick={()=>setInput(p)} className="btn-press" style={{padding:"7px 12px",background:t.card,border:`1px solid ${color}33`,borderRadius:100,color:t.sub,fontSize:12}}>
               {p}
             </button>
           ))}
         </div>
       )}
 
-      <div style={{display:"flex",gap:8,background:"rgba(255,255,255,0.04)",border:"1.5px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"4px 4px 4px 14px",marginTop:8}}>
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&send()} placeholder="Ask your tutor anything..." style={{flex:1,background:"transparent",border:"none",padding:"10px 0",fontSize:14,borderRadius:0}}/>
-        <button onClick={send} disabled={loading||!input.trim()} style={{padding:"10px 18px",background:loading||!input.trim()?"#1a2535":color,border:"none",borderRadius:10,color:"#fff",fontWeight:700,fontSize:16,transition:"background .2s"}}>↑</button>
+      <div style={{display:"flex",gap:8,background:t.card,border:`1.5px solid ${t.border}`,borderRadius:14,padding:"4px 4px 4px 14px",marginTop:8}}>
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&send()} placeholder="Ask your tutor anything..." style={{flex:1,background:"transparent",border:"none",padding:"10px 0",fontSize:14,borderRadius:0,color:t.text}}/>
+        <button onClick={send} disabled={loading||!input.trim()} className="btn-press" style={{padding:"10px 18px",background:loading||!input.trim()?t.card:color,border:"none",borderRadius:10,color:loading||!input.trim()?t.muted:"#fff",fontWeight:700,fontSize:16}}>↑</button>
       </div>
     </div>
   );
 }
 
-// ── RESULTS VIEW ──────────────────────────────────────────────────────────────
-function Results({user}){
+// ── RESULTS ───────────────────────────────────────────────────────────────────
+function Results({user,t}){
   const results=store.get(`r_${user.code}`)||[];
   const overall=results.length>0?Math.round(results.reduce((a,r)=>a+r.pct,0)/results.length):null;
   const sc=p=>p>=70?"#4ade80":p>=40?"#f0a500":"#ff5c8d";
 
   if(results.length===0) return(
-    <div style={{textAlign:"center",padding:"60px 20px",color:"#3a4a6a"}}>
-      <div style={{fontSize:40,marginBottom:12}}>📊</div>
-      <div style={{fontSize:13}}>No results yet. Complete exam questions to track your progress!</div>
+    <div style={{textAlign:"center",padding:"60px 20px",color:t.muted,animation:"fadeIn .4s ease"}}>
+      <div style={{fontSize:48,marginBottom:12}}>📊</div>
+      <div style={{fontWeight:700,fontSize:16,color:t.text,marginBottom:8}}>No Results Yet</div>
+      <div style={{fontSize:13}}>Complete exam questions to track your progress!</div>
     </div>
   );
 
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:16,animation:"fadeIn .3s ease",paddingBottom:60}}>
-      <div style={{background:"rgba(59,130,246,0.08)",border:"1.5px solid rgba(59,130,246,0.2)",borderRadius:14,padding:20,textAlign:"center"}}>
+    <div style={{display:"flex",flexDirection:"column",gap:14,animation:"fadeIn .3s ease",paddingBottom:60}}>
+      <div style={{background:"rgba(59,130,246,0.08)",border:"1.5px solid rgba(59,130,246,0.2)",borderRadius:16,padding:20,textAlign:"center"}}>
         <div style={{fontSize:10,letterSpacing:3,color:"#3b82f6",marginBottom:6,textTransform:"uppercase"}}>Overall Average</div>
-        <div style={{fontSize:48,fontWeight:700,color:"#e0e8ff",lineHeight:1}}>{overall}%</div>
-        <div style={{color:"#4a5a7a",fontSize:13,marginTop:4}}>{results.length} questions answered</div>
+        <div style={{fontSize:52,fontWeight:800,color:t.text,lineHeight:1}}>{overall}%</div>
+        <div style={{color:t.muted,fontSize:13,marginTop:4}}>{results.length} questions answered</div>
       </div>
 
       {SUBJECTS.map(s=>{
@@ -456,20 +522,20 @@ function Results({user}){
         if(sr.length===0) return null;
         const avg=Math.round(sr.reduce((a,r)=>a+r.pct,0)/sr.length);
         return(
-          <div key={s.id} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${s.color}22`,borderRadius:12,padding:"16px 18px"}}>
+          <div key={s.id} style={{background:t.card,border:`1px solid ${s.color}22`,borderRadius:14,padding:"16px 18px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div style={{display:"flex",gap:10,alignItems:"center"}}>
                 <span style={{fontSize:18}}>{s.icon}</span>
-                <span style={{fontWeight:600,color:"#c0d0e8",fontSize:15}}>{s.label}</span>
+                <span style={{fontWeight:700,color:t.text,fontSize:15}}>{s.label}</span>
               </div>
-              <div style={{fontFamily:"monospace",fontSize:14,fontWeight:700,color:sc(avg)}}>{avg}%</div>
+              <div style={{fontFamily:"monospace",fontSize:15,fontWeight:800,color:sc(avg)}}>{avg}%</div>
             </div>
-            <div style={{height:5,background:"rgba(255,255,255,0.05)",borderRadius:3,overflow:"hidden",marginBottom:10}}>
-              <div style={{height:"100%",width:`${avg}%`,background:sc(avg),borderRadius:3,transition:"width .6s ease"}}/>
+            <div style={{height:6,background:t.border,borderRadius:3,overflow:"hidden",marginBottom:10}}>
+              <div style={{height:"100%",width:`${avg}%`,background:sc(avg),borderRadius:3,transition:"width .8s cubic-bezier(.4,0,.2,1)"}}/>
             </div>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
               {sr.slice(-8).map((r,i)=>(
-                <div key={i} title={`${r.topic}: ${r.pct}%`} style={{width:28,height:28,borderRadius:6,background:`${sc(r.pct)}18`,border:`1px solid ${sc(r.pct)}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:sc(r.pct),fontFamily:"monospace"}}>
+                <div key={i} title={`${r.topic}: ${r.pct}%`} style={{width:30,height:30,borderRadius:7,background:`${sc(r.pct)}18`,border:`1.5px solid ${sc(r.pct)}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:sc(r.pct),fontFamily:"monospace",fontWeight:700}}>
                   {r.pct}
                 </div>
               ))}
@@ -477,126 +543,92 @@ function Results({user}){
           </div>
         );
       })}
-
-      <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"16px 18px"}}>
-        <div style={{fontSize:10,letterSpacing:3,color:"#3a4a6a",marginBottom:12,textTransform:"uppercase"}}>Recent Activity</div>
-        {results.slice(-6).reverse().map((r,i)=>(
-          <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:i<5?"1px solid rgba(255,255,255,0.04)":"none"}}>
-            <div>
-              <div style={{color:"#8a9ab8",fontSize:13}}>{r.topic}</div>
-              <div style={{color:"#3a4a6a",fontSize:11,fontFamily:"monospace"}}>{r.subject} · {new Date(r.date).toLocaleDateString()}</div>
-            </div>
-            <div style={{fontFamily:"monospace",fontSize:13,fontWeight:700,color:sc(r.pct)}}>{r.pct}%</div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
 
 // ── TEACHER DASHBOARD ─────────────────────────────────────────────────────────
-function Teacher({onLogout}){
+function Teacher({onLogout,t,darkMode,setDarkMode}){
   const [tab,setTab]=useState("topics");
   const all=[];
   VALID_CODES.forEach(code=>{
     const r=store.get(`r_${code}`)||[];
     r.forEach(res=>all.push({...res,code}));
   });
-
   const topicMap={};
   all.forEach(r=>{
     const k=`${r.subject}|||${r.topic}`;
     if(!topicMap[k]) topicMap[k]={subject:r.subject,topic:r.topic,scores:[],attempts:0};
-    topicMap[k].scores.push(r.pct);
-    topicMap[k].attempts++;
+    topicMap[k].scores.push(r.pct);topicMap[k].attempts++;
   });
   const topics=Object.values(topicMap).map(t=>({...t,avg:Math.round(t.scores.reduce((a,b)=>a+b,0)/t.scores.length)})).sort((a,b)=>a.avg-b.avg);
   const struggling=topics.filter(t=>t.avg<60);
-
   const stuMap={};
-  all.forEach(r=>{
-    const n=r.studentName||r.code;
-    if(!stuMap[n]) stuMap[n]={name:n,code:r.code,results:[]};
-    stuMap[n].results.push(r);
-  });
+  all.forEach(r=>{const n=r.studentName||r.code;if(!stuMap[n]) stuMap[n]={name:n,code:r.code,results:[]};stuMap[n].results.push(r);});
   const students=Object.values(stuMap).map(s=>({...s,avg:Math.round(s.results.reduce((a,r)=>a+r.pct,0)/s.results.length),attempts:s.results.length,weak:[...new Map(s.results.filter(r=>r.pct<50).map(r=>[r.topic,r])).values()]})).sort((a,b)=>a.avg-b.avg);
-
   const overall=all.length>0?Math.round(all.reduce((a,r)=>a+r.pct,0)/all.length):null;
   const sc=p=>p>=70?"#4ade80":p>=40?"#f0a500":"#ff5c8d";
 
   return(
-    <div style={{minHeight:"100vh"}}>
-      <header style={{padding:"0 16px",height:52,display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,13,22,0.97)",position:"sticky",top:0,zIndex:100}}>
-        <div style={{fontWeight:800,fontSize:15}}>Edu<span style={{color:"#3b82f6"}}>Tee</span><span style={{color:"#5a6a8a",fontSize:12}}> Tech</span> <span style={{color:"#3a4a6a",fontSize:11}}>/ Teacher</span></div>
-        <button onClick={onLogout} style={{background:"none",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"5px 12px",color:"#5a6a8a",fontSize:12}}>Logout</button>
+    <div style={{minHeight:"100vh",background:t.bg}}>
+      <header style={{padding:"0 16px",height:54,display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:`1px solid ${t.border}`,background:t.header,position:"sticky",top:0,zIndex:100,backdropFilter:"blur(10px)"}}>
+        <div style={{fontWeight:800,fontSize:16,color:t.text}}>Edu<span style={{color:"#3b82f6"}}>Tee</span><span style={{color:t.muted,fontSize:12}}> Tech</span></div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <button onClick={()=>setDarkMode(!darkMode)} style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:8,padding:"6px 10px",color:t.sub,fontSize:14}}>{darkMode?"☀️":"🌙"}</button>
+          <button onClick={onLogout} style={{background:"none",border:`1px solid ${t.border}`,borderRadius:8,padding:"6px 14px",color:t.sub,fontSize:12}}>Logout</button>
+        </div>
       </header>
 
-      <div style={{maxWidth:680,margin:"0 auto",padding:"20px 16px 60px"}}>
+      <div style={{maxWidth:700,margin:"0 auto",padding:"20px 16px 60px"}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
-          {[{l:"Attempts",v:all.length,c:"#3b82f6"},{l:"Class Avg",v:overall!==null?`${overall}%`:"—",c:overall?sc(overall):"#3a4a6a"},{l:"Students",v:students.length,c:"#a78bfa"}].map(s=>(
-            <div key={s.l} style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${s.c}22`,borderRadius:12,padding:"14px 12px"}}>
-              <div style={{fontSize:9,letterSpacing:3,color:"#3a4a6a",marginBottom:6,textTransform:"uppercase"}}>{s.l}</div>
-              <div style={{fontSize:24,fontWeight:700,color:s.c}}>{s.v}</div>
+          {[{l:"Attempts",v:all.length,c:"#3b82f6"},{l:"Class Avg",v:overall!==null?`${overall}%`:"—",c:overall?sc(overall):t.muted},{l:"Students",v:students.length,c:"#a78bfa"}].map(s=>(
+            <div key={s.l} style={{background:t.card,border:`1px solid ${s.c}22`,borderRadius:14,padding:"14px 12px"}}>
+              <div style={{fontSize:9,letterSpacing:3,color:t.muted,marginBottom:6,textTransform:"uppercase"}}>{s.l}</div>
+              <div style={{fontSize:26,fontWeight:800,color:s.c}}>{s.v}</div>
             </div>
           ))}
         </div>
 
-        <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,0.03)",borderRadius:10,padding:4}}>
+        <div style={{display:"flex",gap:4,marginBottom:20,background:t.card,borderRadius:12,padding:4}}>
           {[["topics","🔴 Struggling"],["students","👤 Students"],["codes","🔑 Codes"]].map(([id,lbl])=>(
-            <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"9px 4px",border:"none",borderRadius:8,background:tab===id?"#3b82f6":"transparent",color:tab===id?"#fff":"#5a6a8a",fontSize:12,fontWeight:tab===id?700:400,transition:"all .2s"}}>
+            <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"9px 4px",border:"none",borderRadius:9,background:tab===id?"#3b82f6":"transparent",color:tab===id?"#fff":t.sub,fontSize:12,fontWeight:tab===id?700:400,transition:"all .2s"}}>
               {lbl}
             </button>
           ))}
         </div>
 
         {all.length===0&&(
-          <div style={{textAlign:"center",padding:"60px 20px",color:"#3a4a6a"}}>
+          <div style={{textAlign:"center",padding:"60px 20px",color:t.muted}}>
             <div style={{fontSize:40,marginBottom:12}}>📊</div>
-            <div style={{fontSize:13}}>No student data yet. Share codes with students to see results here.</div>
+            <div style={{fontSize:13}}>No student data yet. Share codes with students!</div>
           </div>
         )}
 
         {tab==="topics"&&all.length>0&&(
           <div style={{animation:"fadeIn .35s ease"}}>
             {struggling.length>0&&(
-              <div style={{background:"rgba(255,92,141,0.07)",border:"1.5px solid rgba(255,92,141,0.2)",borderRadius:14,padding:"16px 18px",marginBottom:18}}>
-                <div style={{fontSize:10,letterSpacing:3,color:"#ff5c8d",marginBottom:12,textTransform:"uppercase"}}>⚠ Needs Attention ({struggling.length} topics)</div>
-                {struggling.map((t,i)=>{
-                  const s=SUBJECTS.find(s=>s.label===t.subject);
-                  return(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
-                      <div style={{width:32,height:32,borderRadius:8,background:"rgba(255,92,141,0.12)",border:"1px solid rgba(255,92,141,0.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{s?.icon}</div>
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{color:"#d0a0a8",fontSize:13,fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.topic}</div>
-                        <div style={{fontSize:10,color:"#4a3a45",fontFamily:"monospace"}}>{t.subject} · {t.attempts} attempt{t.attempts!==1?"s":""}</div>
-                      </div>
-                      <div style={{fontFamily:"monospace",fontSize:15,fontWeight:700,color:"#ff5c8d",flexShrink:0}}>{t.avg}%</div>
-                    </div>
-                  );
+              <div style={{background:"rgba(255,92,141,0.07)",border:"1.5px solid rgba(255,92,141,0.2)",borderRadius:16,padding:"16px 18px",marginBottom:18}}>
+                <div style={{fontSize:10,letterSpacing:3,color:"#ff5c8d",marginBottom:12,textTransform:"uppercase"}}>⚠ Needs Attention ({struggling.length})</div>
+                {struggling.map((tt,i)=>{
+                  const s=SUBJECTS.find(s=>s.label===tt.subject);
+                  return(<div key={i} style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+                    <div style={{width:32,height:32,borderRadius:8,background:"rgba(255,92,141,0.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{s?.icon}</div>
+                    <div style={{flex:1,minWidth:0}}><div style={{color:"#d0a0a8",fontSize:13,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tt.topic}</div><div style={{fontSize:10,color:"#4a3a45"}}>{tt.subject} · {tt.attempts} attempts</div></div>
+                    <div style={{fontFamily:"monospace",fontSize:15,fontWeight:800,color:"#ff5c8d"}}>{tt.avg}%</div>
+                  </div>);
                 })}
               </div>
             )}
-
-            <div style={{fontSize:10,letterSpacing:3,color:"#3a4a6a",marginBottom:12,textTransform:"uppercase"}}>All Topics (Worst → Best)</div>
-            {topics.map((t,i)=>{
-              const s=SUBJECTS.find(s=>s.label===t.subject);
-              const c=sc(t.avg);
-              return(
-                <div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${c}18`,borderRadius:10,padding:"11px 14px",marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
-                  <div style={{fontSize:10,color:"#2a3a55",minWidth:22,fontFamily:"monospace"}}>{String(i+1).padStart(2,"0")}</div>
-                  <div style={{fontSize:16}}>{s?.icon}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:13,color:"#b0c0d8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.topic}</div>
-                    <div style={{fontSize:10,color:"#2a3a55",fontFamily:"monospace"}}>{t.attempts} attempt{t.attempts!==1?"s":""}</div>
-                  </div>
-                  <div style={{textAlign:"right",flexShrink:0}}>
-                    <div style={{fontFamily:"monospace",fontSize:14,fontWeight:700,color:c}}>{t.avg}%</div>
-                    <div style={{width:50,height:3,background:"rgba(255,255,255,0.05)",borderRadius:2,overflow:"hidden",marginTop:3}}>
-                      <div style={{height:"100%",width:`${t.avg}%`,background:c,borderRadius:2}}/>
-                    </div>
-                  </div>
-                </div>
-              );
+            <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:12,textTransform:"uppercase"}}>All Topics (Worst → Best)</div>
+            {topics.map((tt,i)=>{
+              const s=SUBJECTS.find(s=>s.label===tt.subject);
+              const c=sc(tt.avg);
+              return(<div key={i} style={{background:t.card,border:`1px solid ${c}18`,borderRadius:12,padding:"11px 14px",marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
+                <div style={{fontSize:10,color:t.muted,minWidth:22,fontFamily:"monospace"}}>{String(i+1).padStart(2,"0")}</div>
+                <div style={{fontSize:16}}>{s?.icon}</div>
+                <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,color:t.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tt.topic}</div><div style={{fontSize:10,color:t.muted}}>{tt.attempts} attempts</div></div>
+                <div style={{textAlign:"right"}}><div style={{fontFamily:"monospace",fontSize:14,fontWeight:700,color:c}}>{tt.avg}%</div><div style={{width:50,height:3,background:t.border,borderRadius:2,overflow:"hidden",marginTop:3}}><div style={{height:"100%",width:`${tt.avg}%`,background:c}}/></div></div>
+              </div>);
             })}
           </div>
         )}
@@ -604,27 +636,13 @@ function Teacher({onLogout}){
         {tab==="students"&&all.length>0&&(
           <div style={{animation:"fadeIn .35s ease",display:"flex",flexDirection:"column",gap:12}}>
             {students.map((s,i)=>(
-              <div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${sc(s.avg)}22`,borderRadius:14,padding:"16px 18px"}}>
+              <div key={i} style={{background:t.card,border:`1px solid ${sc(s.avg)}22`,borderRadius:16,padding:"16px 18px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-                  <div>
-                    <div style={{fontWeight:700,fontSize:15,color:"#d0e0f0",marginBottom:2}}>{s.name}</div>
-                    <div style={{fontSize:10,color:"#3a4a6a",fontFamily:"monospace"}}>Code: {s.code} · {s.attempts} question{s.attempts!==1?"s":""}</div>
-                  </div>
-                  <div style={{fontFamily:"monospace",fontSize:20,fontWeight:700,color:sc(s.avg)}}>{s.avg}%</div>
+                  <div><div style={{fontWeight:700,fontSize:15,color:t.text,marginBottom:2}}>{s.name}</div><div style={{fontSize:10,color:t.muted}}>Code: {s.code} · {s.attempts} questions</div></div>
+                  <div style={{fontFamily:"monospace",fontSize:22,fontWeight:800,color:sc(s.avg)}}>{s.avg}%</div>
                 </div>
-                <div style={{height:5,background:"rgba(255,255,255,0.05)",borderRadius:3,overflow:"hidden",marginBottom:10}}>
-                  <div style={{height:"100%",width:`${s.avg}%`,background:sc(s.avg),borderRadius:3}}/>
-                </div>
-                {s.weak.length>0&&(
-                  <div style={{background:"rgba(255,92,141,0.06)",border:"1px solid rgba(255,92,141,0.15)",borderRadius:8,padding:"10px 12px"}}>
-                    <div style={{fontSize:9,letterSpacing:2,color:"#ff5c8d",marginBottom:6,textTransform:"uppercase"}}>Needs Help With</div>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                      {s.weak.slice(0,5).map((r,j)=>(
-                        <div key={j} style={{fontSize:11,color:"#c07080",background:"rgba(255,92,141,0.08)",borderRadius:6,padding:"3px 8px"}}>{r.topic}</div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <div style={{height:6,background:t.border,borderRadius:3,overflow:"hidden",marginBottom:10}}><div style={{height:"100%",width:`${s.avg}%`,background:sc(s.avg),borderRadius:3,transition:"width .8s ease"}}/></div>
+                {s.weak.length>0&&(<div style={{background:"rgba(255,92,141,0.06)",border:"1px solid rgba(255,92,141,0.15)",borderRadius:9,padding:"10px 12px"}}><div style={{fontSize:9,letterSpacing:2,color:"#ff5c8d",marginBottom:6,textTransform:"uppercase"}}>Needs Help With</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{s.weak.slice(0,5).map((r,j)=>(<div key={j} style={{fontSize:11,color:"#c07080",background:"rgba(255,92,141,0.08)",borderRadius:6,padding:"3px 8px"}}>{r.topic}</div>))}</div></div>)}
               </div>
             ))}
           </div>
@@ -632,31 +650,25 @@ function Teacher({onLogout}){
 
         {tab==="codes"&&(
           <div style={{animation:"fadeIn .35s ease"}}>
-            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"18px 20px",marginBottom:14}}>
-              <div style={{fontSize:10,letterSpacing:3,color:"#3a4a6a",marginBottom:14,textTransform:"uppercase"}}>Student Access Codes</div>
-              {VALID_CODES.map((code,i)=>{
+            <div style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:16,padding:"18px 20px",marginBottom:14}}>
+              <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:14,textTransform:"uppercase"}}>Student Access Codes</div>
+              {VALID_CODES.map((code)=>{
                 const cr=store.get(`r_${code}`)||[];
                 const names=[...new Set(cr.map(r=>r.studentName).filter(Boolean))];
-                return(
-                  <div key={code} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,marginBottom:8}}>
-                    <div>
-                      <div style={{fontFamily:"monospace",fontSize:14,color:"#3b82f6",fontWeight:700,letterSpacing:2}}>{code}</div>
-                      <div style={{fontSize:11,color:"#3a4a6a",marginTop:2}}>{names.length>0?`Used by: ${names.join(", ")}`:"Not used yet"}</div>
-                    </div>
-                    <div style={{fontSize:11,color:cr.length>0?"#4ade80":"#2a3a55",fontFamily:"monospace"}}>{cr.length} attempts</div>
-                  </div>
-                );
+                return(<div key={code} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:t.bg,border:`1px solid ${t.border}`,borderRadius:10,marginBottom:8}}>
+                  <div><div style={{fontFamily:"monospace",fontSize:14,color:"#3b82f6",fontWeight:700,letterSpacing:2}}>{code}</div><div style={{fontSize:11,color:t.muted,marginTop:2}}>{names.length>0?`Used by: ${names.join(", ")}`:"Not used yet"}</div></div>
+                  <div style={{fontSize:11,color:cr.length>0?"#4ade80":t.muted,fontFamily:"monospace"}}>{cr.length} attempts</div>
+                </div>);
               })}
             </div>
-            <div style={{background:"rgba(59,130,246,0.07)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:12,padding:"14px 16px",marginBottom:14}}>
-              <div style={{fontSize:10,letterSpacing:3,color:"#3b82f6",marginBottom:6,textTransform:"uppercase"}}>Your Teacher Code</div>
-              <div style={{fontFamily:"monospace",fontSize:18,color:"#3b82f6",fontWeight:700,letterSpacing:3,marginBottom:4}}>{TEACHER_CODE}</div>
-              <div style={{color:"#3a4a6a",fontSize:12}}>Keep this private — only for you.</div>
+            <div style={{background:"rgba(59,130,246,0.07)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:14,padding:"14px 16px",marginBottom:14}}>
+              <div style={{fontSize:10,letterSpacing:3,color:"#3b82f6",marginBottom:6,textTransform:"uppercase"}}>Teacher Code (Keep Private)</div>
+              <div style={{fontFamily:"monospace",fontSize:18,color:"#3b82f6",fontWeight:800,letterSpacing:3}}>{TEACHER_CODE}</div>
             </div>
-            <div style={{background:"rgba(240,165,0,0.06)",border:"1px solid rgba(240,165,0,0.15)",borderRadius:12,padding:"14px 16px"}}>
-              <div style={{fontSize:10,letterSpacing:3,color:"#f0a500",marginBottom:6,textTransform:"uppercase"}}>App Link to Share</div>
-              <div style={{fontFamily:"monospace",fontSize:14,color:"#60a5fa"}}>bgcse-study.netlify.app</div>
-              <div style={{color:"#1e2a3a",fontSize:11,marginTop:4}}>© EduTee Tech Company — Botswana 🇧🇼</div>
+            <div style={{background:"rgba(59,130,246,0.05)",border:"1px solid rgba(59,130,246,0.12)",borderRadius:14,padding:"14px 16px"}}>
+              <div style={{fontSize:10,letterSpacing:3,color:"#3b82f6",marginBottom:6,textTransform:"uppercase"}}>App Link</div>
+              <div style={{fontFamily:"monospace",fontSize:13,color:"#60a5fa"}}>bgcse-study.netlify.app</div>
+              <div style={{fontSize:11,color:t.muted,marginTop:4}}>© EduTee Tech Company — Botswana 🇧🇼</div>
             </div>
           </div>
         )}
@@ -665,8 +677,73 @@ function Teacher({onLogout}){
   );
 }
 
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+function Login({onLogin,t,darkMode,setDarkMode}){
+  const [name,setName]=useState("");
+  const [code,setCode]=useState("");
+  const [err,setErr]=useState("");
+  const [loading,setLoading]=useState(false);
+  const quote=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+
+  const go=()=>{
+    if(!name.trim()){setErr("Please enter your name");return}
+    if(!code.trim()){setErr("Please enter your access code");return}
+    setLoading(true);
+    setTimeout(()=>{
+      const c=code.trim().toUpperCase();
+      if(c===TEACHER_CODE) onLogin({name:name.trim(),role:"teacher",code:c});
+      else if(VALID_CODES.includes(c)) onLogin({name:name.trim(),role:"student",code:c});
+      else{setErr("Invalid code. Contact your teacher.");setLoading(false);}
+    },600);
+  };
+
+  return(
+    <div style={{minHeight:"100vh",background:t.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+      <button onClick={()=>setDarkMode(!darkMode)} style={{position:"fixed",top:16,right:16,background:t.card,border:`1px solid ${t.border}`,borderRadius:10,padding:"8px 12px",color:t.sub,fontSize:16}}>
+        {darkMode?"☀️":"🌙"}
+      </button>
+
+      <div style={{width:"100%",maxWidth:380,animation:"fadeIn .5s ease"}}>
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <div style={{fontSize:36,fontWeight:900,letterSpacing:-1,marginBottom:6,color:t.text}}>
+            Edu<span style={{color:"#3b82f6"}}>Tee</span><span style={{color:t.muted,fontSize:22,fontWeight:600}}> Tech</span>
+          </div>
+          <div style={{color:t.muted,fontSize:13,marginBottom:4}}>Botswana BGCSE Study Platform</div>
+          <div style={{color:"#1e3a5a",fontSize:11}}>© EduTee Tech Company 🇧🇼</div>
+        </div>
+
+        {/* Quote */}
+        <div style={{background:`linear-gradient(135deg,rgba(59,130,246,0.08),rgba(167,139,250,0.08))`,border:`1px solid rgba(59,130,246,0.15)`,borderRadius:14,padding:"14px 16px",marginBottom:24}}>
+          <div style={{fontStyle:"italic",color:t.text,fontSize:13,lineHeight:1.6,marginBottom:4}}>"{quote.q}"</div>
+          <div style={{fontSize:11,color:t.muted}}>— {quote.a}</div>
+        </div>
+
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div>
+            <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:8,textTransform:"uppercase"}}>Your Name</div>
+            <input value={name} onChange={e=>{setName(e.target.value);setErr("")}} placeholder="e.g. Bofelo Mokoena" style={{background:t.card,border:`1.5px solid ${t.border}`,color:t.text}}/>
+          </div>
+          <div>
+            <div style={{fontSize:10,letterSpacing:3,color:t.muted,marginBottom:8,textTransform:"uppercase"}}>Access Code</div>
+            <input value={code} onChange={e=>{setCode(e.target.value);setErr("")}} placeholder="Given by your teacher" onKeyDown={e=>e.key==="Enter"&&go()} style={{letterSpacing:3,background:t.card,border:`1.5px solid ${err?"#ff5c8d":t.border}`,color:t.text}}/>
+          </div>
+          {err&&<div style={{color:"#ff5c8d",fontSize:13,textAlign:"center",animation:"fadeIn .2s ease"}}>{err}</div>}
+          <button onClick={go} disabled={loading} className="btn-press" style={{padding:14,background:loading?t.card:"#3b82f6",border:"none",borderRadius:12,color:loading?t.muted:"#fff",fontWeight:800,fontSize:15,marginTop:4,boxShadow:loading?"none":"0 4px 16px rgba(59,130,246,0.4)"}}>
+            {loading?"Checking...":"Enter →"}
+          </button>
+        </div>
+        <div style={{textAlign:"center",marginTop:24,color:t.muted,fontSize:12,lineHeight:1.6}}>
+          🇧🇼 Aligned to the Botswana BGCSE Syllabus<br/>
+          Don't have a code? Contact your teacher.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 function App(){
+  const [darkMode,setDarkMode]=useState(store.get("darkMode")!==false);
   const [user,setUser]=useState(null);
   const [subject,setSubject]=useState(null);
   const [topic,setTopic]=useState(null);
@@ -675,30 +752,53 @@ function App(){
   const [search,setSearch]=useState("");
   const [bottomTab,setBottomTab]=useState("learn");
 
+  const t=darkMode?DARK:LIGHT;
   const subj=SUBJECTS.find(s=>s.id===subject);
+
+  useEffect(()=>{store.set("darkMode",darkMode)},[darkMode]);
+  useEffect(()=>{document.body.style.background=t.bg},[darkMode]);
 
   const saveResult=(r)=>{
     const k=`r_${user.code}`;
-    const existing=store.get(k)||[];
-    store.set(k,[...existing,{...r,studentName:user.name}]);
+    store.set(k,[...(store.get(k)||[]),{...r,studentName:user.name}]);
   };
 
-  if(!user) return <Login onLogin={setUser}/>;
-  if(user.role==="teacher") return <Teacher onLogout={()=>setUser(null)}/>;
+  const isBookmarked=()=>{
+    if(!topic||!subj) return false;
+    const bm=store.get(`bm_${user?.code}`)||[];
+    return bm.some(b=>b.topic===topic&&b.subject===subj.label);
+  };
 
-  const filteredTopics=subj?.topics.filter(t=>t.toLowerCase().includes(search.toLowerCase()));
+  const toggleBookmark=()=>{
+    if(!topic||!subj||!user) return;
+    const k=`bm_${user.code}`;
+    const bm=store.get(k)||[];
+    const exists=bm.some(b=>b.topic===topic&&b.subject===subj.label);
+    if(exists) store.set(k,bm.filter(b=>!(b.topic===topic&&b.subject===subj.label)));
+    else store.set(k,[...bm,{topic,subject:subj.label,subjectId:subj.id}]);
+  };
+
+  const handleSelectBookmark=(subjectLabel,topicName,subjectId)=>{
+    setSubject(subjectId);setTopic(topicName);setTab("notes");setScreen("learn");setBottomTab("learn");
+  };
+
+  if(!user) return <Login onLogin={setUser} t={t} darkMode={darkMode} setDarkMode={setDarkMode}/>;
+  if(user.role==="teacher") return <Teacher onLogout={()=>setUser(null)} t={t} darkMode={darkMode} setDarkMode={setDarkMode}/>;
+
+  const filteredTopics=subj?.topics.filter(tt=>tt.toLowerCase().includes(search.toLowerCase()));
+  const bookmarked=isBookmarked();
 
   return(
-    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column"}}>
-      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes bounce{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}.tr{transition:all .15s}.tr:hover{background:rgba(255,255,255,0.05)!important}`}</style>
+    <div style={{minHeight:"100vh",background:t.bg,display:"flex",flexDirection:"column",color:t.text}}>
+      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}@keyframes bounce{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-5px);opacity:1}}@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}.tr{transition:all .18s}.tr:hover{opacity:.85}.card-hover{transition:all .22s cubic-bezier(.4,0,.2,1)}.card-hover:hover{transform:translateY(-3px)}.btn-press:active{transform:scale(.96)}`}</style>
 
-      <header style={{padding:"0 16px",height:52,display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,13,22,0.97)",position:"sticky",top:0,zIndex:100}}>
-        <div style={{fontWeight:800,fontSize:15,cursor:"pointer"}} onClick={()=>{setScreen("home");setSubject(null);setTopic(null);setBottomTab("learn")}}>
-          Edu<span style={{color:"#3b82f6"}}>Tee</span>
+      <header style={{padding:"0 16px",height:54,display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:`1px solid ${t.border}`,background:t.header,position:"sticky",top:0,zIndex:100,backdropFilter:"blur(12px)"}}>
+        <div style={{fontWeight:900,fontSize:16,cursor:"pointer",color:t.text}} onClick={()=>{setScreen("home");setSubject(null);setTopic(null);setBottomTab("learn")}}>
+          Edu<span style={{color:"#3b82f6"}}>Tee</span><span style={{color:t.muted,fontSize:12,fontWeight:500}}> Tech</span>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          {topic&&<div style={{fontSize:10,color:"#3a4a6a",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{topic}</div>}
-          <button onClick={()=>setUser(null)} style={{background:"none",border:"1px solid rgba(255,255,255,0.07)",borderRadius:6,padding:"5px 10px",color:"#4a5a7a",fontSize:11}}>
+          <button onClick={()=>setDarkMode(!darkMode)} className="btn-press" style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:8,padding:"6px 10px",color:t.sub,fontSize:14}}>{darkMode?"☀️":"🌙"}</button>
+          <button onClick={()=>setUser(null)} className="btn-press" style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:8,padding:"5px 12px",color:t.sub,fontSize:12}}>
             {user.name.split(" ")[0]}
           </button>
         </div>
@@ -709,95 +809,105 @@ function App(){
         {/* HOME */}
         {screen==="home"&&bottomTab==="learn"&&(
           <div style={{animation:"fadeIn .4s ease"}}>
-            <div style={{marginBottom:28}}>
-              <div style={{fontSize:10,letterSpacing:4,color:"#3a4a6a",marginBottom:8,textTransform:"uppercase"}}>Welcome back</div>
-              <div style={{fontSize:26,fontWeight:700,color:"#e0e8ff",marginBottom:4}}>{user.name}</div>
-              <div style={{color:"#4a5a7a",fontSize:13}}>🇧🇼 Botswana BGCSE Syllabus — Choose a subject</div>
+            <Countdown t={t}/>
+            <Quote t={t}/>
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:10,letterSpacing:4,color:t.muted,marginBottom:8,textTransform:"uppercase"}}>Welcome back</div>
+              <div style={{fontSize:26,fontWeight:800,color:t.text,marginBottom:4}}>{user.name} 👋</div>
+              <div style={{color:t.sub,fontSize:13}}>🇧🇼 BGCSE Syllabus — Choose a subject to study</div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
               {SUBJECTS.map((s,i)=>(
-                <div key={s.id} className="card" onClick={()=>{setSubject(s.id);setScreen("topics");setSearch("")}} style={{background:`linear-gradient(135deg,${s.color}14,rgba(8,13,22,0.8))`,border:`1.5px solid ${s.color}22`,borderRadius:14,padding:"20px 16px",cursor:"pointer",transition:"all .2s",animation:`fadeIn .4s ease ${i*.07}s both`}}>
-                  <div style={{fontSize:24,marginBottom:8}}>{s.icon}</div>
-                  <div style={{fontWeight:700,fontSize:15,color:"#e0e8ff",marginBottom:4}}>{s.label}</div>
+                <div key={s.id} className="card-hover btn-press" onClick={()=>{setSubject(s.id);setScreen("topics");setSearch("")}} style={{background:`linear-gradient(135deg,${s.color}18,${t.card})`,border:`1.5px solid ${s.color}33`,borderRadius:16,padding:"20px 16px",cursor:"pointer",animation:`fadeIn .4s ease ${i*.08}s both`}}>
+                  <div style={{fontSize:26,marginBottom:10}}>{s.icon}</div>
+                  <div style={{fontWeight:800,fontSize:15,color:t.text,marginBottom:4}}>{s.label}</div>
                   <div style={{fontSize:10,color:s.color,fontFamily:"monospace"}}>{s.topics.length} topics</div>
                 </div>
               ))}
             </div>
-            <div style={{marginTop:20,background:"rgba(59,130,246,0.06)",border:"1px solid rgba(59,130,246,0.15)",borderRadius:12,padding:"14px 16px"}}>
-              <div style={{fontSize:10,letterSpacing:3,color:"#3b82f6",marginBottom:8,textTransform:"uppercase"}}>How to use</div>
-              {["1. Pick a subject below","2. Choose a topic from the BGCSE syllabus","3. Read AI-generated study notes","4. Attempt an exam question with model answers","5. Chat with your AI tutor for help"].map(s=>(
-                <div key={s} style={{color:"#4a5a7a",fontSize:13,marginBottom:4}}>{s}</div>
+            <div style={{background:`linear-gradient(135deg,rgba(59,130,246,0.06),rgba(167,139,250,0.06))`,border:`1px solid rgba(59,130,246,0.15)`,borderRadius:14,padding:"14px 16px"}}>
+              <div style={{fontSize:10,letterSpacing:3,color:"#3b82f6",marginBottom:8,textTransform:"uppercase"}}>How to use EduTee Tech</div>
+              {["1. Pick a subject","2. Choose a BGCSE topic","3. Read AI study notes","4. Attempt exam questions","5. Chat with your AI tutor"].map(s=>(
+                <div key={s} style={{color:t.sub,fontSize:13,marginBottom:4}}>{s}</div>
               ))}
             </div>
           </div>
         )}
 
-        {/* MY RESULTS */}
-        {bottomTab==="results"&&<Results user={user}/>}
+        {/* BOOKMARKS */}
+        {bottomTab==="bookmarks"&&<BookmarksView t={t} onSelectTopic={handleSelectBookmark} userCode={user.code}/>}
+
+        {/* RESULTS */}
+        {bottomTab==="results"&&<Results user={user} t={t}/>}
+
+        {/* FORMULA SHEET */}
+        {bottomTab==="formulas"&&<FormulaSheet t={t}/>}
 
         {/* TOPICS */}
         {screen==="topics"&&subj&&bottomTab==="learn"&&(
           <div style={{animation:"fadeIn .35s ease"}}>
             <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:20}}>
-              <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:"#3a4a6a",fontSize:20,padding:4}}>←</button>
+              <button onClick={()=>setScreen("home")} className="btn-press" style={{background:"none",border:"none",color:t.muted,fontSize:22,padding:4}}>←</button>
               <div>
-                <div style={{fontSize:22,fontWeight:700,color:"#e0e8ff"}}>{subj.label}</div>
-                <div style={{fontSize:10,color:"#3a4a6a",fontFamily:"monospace"}}>{subj.topics.length} BGCSE topics</div>
+                <div style={{fontSize:22,fontWeight:800,color:t.text}}>{subj.label}</div>
+                <div style={{fontSize:10,color:t.muted,fontFamily:"monospace"}}>{subj.topics.length} BGCSE topics</div>
               </div>
             </div>
-            <div style={{position:"relative",marginBottom:16}}>
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search topics..." style={{paddingLeft:38}}/>
-              <div style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",color:"#3a4a6a",fontSize:14}}>⌕</div>
+            <div style={{position:"relative",marginBottom:14}}>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search topics..." style={{background:t.card,border:`1.5px solid ${t.border}`,color:t.text,paddingLeft:38}}/>
+              <div style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",color:t.muted,fontSize:14}}>⌕</div>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:4}}>
-              {filteredTopics?.map((t,i)=>(
-                <button key={t} className="tr" onClick={()=>{setTopic(t);setTab("notes");setScreen("learn")}} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:9,padding:"13px 16px",textAlign:"left",color:"#a0b0c8",fontSize:14,display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Segoe UI',sans-serif",animation:`fadeIn .3s ease ${Math.min(i,6)*.03}s both`}}>
+            <div style={{display:"flex",flexDirection:"column",gap:5}}>
+              {filteredTopics?.map((tt,i)=>(
+                <button key={tt} className="tr btn-press" onClick={()=>{setTopic(tt);setTab("notes");setScreen("learn")}} style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:11,padding:"13px 16px",textAlign:"left",color:t.text,fontSize:14,display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Segoe UI',sans-serif",animation:`fadeIn .3s ease ${Math.min(i,6)*.04}s both`}}>
                   <div style={{display:"flex",gap:10,alignItems:"center"}}>
-                    <span style={{fontSize:10,color:"#2a3a55",minWidth:20,fontFamily:"monospace"}}>{String(i+1).padStart(2,"0")}</span>
-                    {t}
+                    <span style={{fontSize:10,color:t.muted,minWidth:20,fontFamily:"monospace"}}>{String(i+1).padStart(2,"0")}</span>
+                    {tt}
                   </div>
-                  <span style={{color:subj.color}}>→</span>
+                  <span style={{color:subj.color,fontSize:16}}>→</span>
                 </button>
               ))}
-              {filteredTopics?.length===0&&(
-                <div style={{textAlign:"center",padding:40,color:"#3a4a6a",fontSize:12,fontFamily:"monospace"}}>No topics match "{search}"</div>
-              )}
+              {filteredTopics?.length===0&&<div style={{textAlign:"center",padding:40,color:t.muted,fontSize:12}}>No topics match "{search}"</div>}
             </div>
           </div>
         )}
 
         {/* LEARN */}
         {screen==="learn"&&subj&&topic&&bottomTab==="learn"&&(
-          <div style={{animation:"fadeIn .3s ease"}}>
+          <div style={{animation:"slideIn .35s ease"}}>
             <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:16}}>
-              <button onClick={()=>setScreen("topics")} style={{background:"none",border:"none",color:"#3a4a6a",fontSize:20,padding:4}}>←</button>
+              <button onClick={()=>setScreen("topics")} className="btn-press" style={{background:"none",border:"none",color:t.muted,fontSize:22,padding:4}}>←</button>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:10,color:subj.color,textTransform:"uppercase",letterSpacing:2,marginBottom:2}}>{subj.label}</div>
-                <div style={{fontSize:18,fontWeight:700,color:"#e0e8ff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{topic}</div>
+                <div style={{fontSize:17,fontWeight:800,color:t.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{topic}</div>
               </div>
+              <button onClick={toggleBookmark} className="btn-press" style={{background:bookmarked?`${subj.color}18`:"transparent",border:`1.5px solid ${bookmarked?subj.color:t.border}`,borderRadius:10,padding:"7px 12px",color:bookmarked?subj.color:t.muted,fontSize:16,flexShrink:0}}>
+                {bookmarked?"🔖":"🔖"}
+              </button>
             </div>
 
-            <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,0.03)",borderRadius:10,padding:4}}>
+            <div style={{display:"flex",gap:4,marginBottom:20,background:t.card,borderRadius:12,padding:4}}>
               {[["notes","📘 Notes"],["exam","📝 Exam Q"],["tutor","🤖 Tutor"]].map(([id,lbl])=>(
-                <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"9px 4px",border:"none",borderRadius:8,background:tab===id?subj.color:"transparent",color:tab===id?"#fff":"#5a6a8a",fontSize:12,fontWeight:tab===id?700:400,transition:"all .2s"}}>
+                <button key={id} onClick={()=>setTab(id)} className="btn-press" style={{flex:1,padding:"9px 4px",border:"none",borderRadius:9,background:tab===id?subj.color:"transparent",color:tab===id?"#fff":t.sub,fontSize:12,fontWeight:tab===id?800:400,transition:"all .2s",boxShadow:tab===id?"0 2px 8px rgba(0,0,0,0.2)":"none"}}>
                   {lbl}
                 </button>
               ))}
             </div>
 
-            {tab==="notes"&&<Notes subject={subj.label} topic={topic} color={subj.color}/>}
-            {tab==="exam"&&<Exam subject={subj.label} topic={topic} color={subj.color} user={user} onResult={saveResult}/>}
-            {tab==="tutor"&&<Tutor subject={subj.label} topic={topic} color={subj.color} name={user.name.split(" ")[0]}/>}
+            {tab==="notes"&&<Notes subject={subj.label} topic={topic} color={subj.color} t={t}/>}
+            {tab==="exam"&&<Exam subject={subj.label} topic={topic} color={subj.color} user={user} onResult={saveResult} t={t}/>}
+            {tab==="tutor"&&<Tutor subject={subj.label} topic={topic} color={subj.color} name={user.name.split(" ")[0]} t={t}/>}
           </div>
         )}
       </main>
 
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(8,13,22,0.97)",borderTop:"1px solid rgba(255,255,255,0.06)",padding:"8px 16px 12px",zIndex:100}}>
-        <div style={{display:"flex",maxWidth:680,margin:"0 auto",gap:4}}>
-          {[["learn","📚","Study"],["results","📊","My Results"]].map(([id,icon,lbl])=>(
-            <button key={id} onClick={()=>{setBottomTab(id);if(id==="learn"&&!topic)setScreen("home")}} style={{flex:1,padding:"9px 4px 6px",background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:3,color:bottomTab===id?"#e0e8ff":"#3a4a6a",transition:"color .2s"}}>
+      {/* BOTTOM NAV */}
+      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:t.header,borderTop:`1px solid ${t.border}`,padding:"6px 8px 10px",zIndex:100,backdropFilter:"blur(12px)"}}>
+        <div style={{display:"flex",maxWidth:680,margin:"0 auto",gap:2}}>
+          {[["learn","📚","Study"],["bookmarks","🔖","Saved"],["formulas","📐","Formulas"],["results","📊","Results"]].map(([id,icon,lbl])=>(
+            <button key={id} onClick={()=>{setBottomTab(id);if(id==="learn"&&!topic)setScreen("home")}} className="btn-press" style={{flex:1,padding:"8px 2px 5px",background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:2,color:bottomTab===id?subj?.color||"#3b82f6":t.muted,transition:"color .2s"}}>
               <span style={{fontSize:18}}>{icon}</span>
-              <span style={{fontSize:9,letterSpacing:1,textTransform:"uppercase",fontFamily:"monospace"}}>{lbl}</span>
+              <span style={{fontSize:8,letterSpacing:.5,textTransform:"uppercase",fontFamily:"monospace"}}>{lbl}</span>
             </button>
           ))}
         </div>
@@ -810,5 +920,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
+
 
                   
