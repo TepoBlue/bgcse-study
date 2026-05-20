@@ -1,2 +1,2 @@
 # bgcse-study
-BGCSE Study App
+BGCSE  Study App
