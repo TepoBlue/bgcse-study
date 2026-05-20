@@ -7,7 +7,14 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <style>
+.katex{font-size:1.1em!important}
+.katex-display{margin:8px 0!important;overflow-x:auto;overflow-y:hidden}
+.math-step{border-left:2px solid #39ff14;padding:10px 14px;margin:6px 0;background:rgba(57,255,20,0.03);border-radius:0 10px 10px 0}
+.math-step-num{font-size:9px;letter-spacing:2px;color:#39ff14;text-transform:uppercase;margin-bottom:4px;font-family:'Segoe UI',sans-serif}
+.math-underline{border-bottom:1.5px solid #39ff14;padding-bottom:2px;display:inline-block}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;font-family:'Segoe UI',sans-serif;color:#fff;min-height:100vh;overflow-x:hidden}
 ::-webkit-scrollbar{width:3px}
@@ -20,6 +27,14 @@ body{background:#0a0a0a;font-family:'Segoe UI',sans-serif;color:#fff;min-height:
 @keyframes glow{0%,100%{text-shadow:0 0 10px rgba(57,255,20,0.5)}50%{text-shadow:0 0 20px rgba(57,255,20,0.9),0 0 40px rgba(57,255,20,0.3)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes menuSlide{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+.glow-text{animation:glow 2s ease-in-out infinite}
+.btn{cursor:pointer;font-family:'Segoe UI',sans-serif;border:none;transition:all .2s cubic-bezier(.4,0,.2,1)}
+.btn:active{transform:scale(.95)}
+.card{transition:all .22s cubic-bezier(.4,0,.2,1)}
+.card:hover{transform:translateY(-2px)}
+input{font-family:'Segoe UI',sans-serif;outline:none;width:100%}
+</style>
 @keyframes menuSlide{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
 .glow-text{animation:glow 2s ease-in-out infinite}
 .btn{cursor:pointer;font-family:'Segoe UI',sans-serif;border:none;transition:all .2s cubic-bezier(.4,0,.2,1)}
@@ -60,40 +75,51 @@ const SUBJECTS=[
 
 const FORMULAS={
   Maths:[
-    {n:"Quadratic Formula",f:"x = (-b ± √(b²-4ac)) / 2a"},
-    {n:"Pythagoras",f:"a² + b² = c²"},
-    {n:"Area of Circle",f:"A = πr²"},
-    {n:"Volume of Cylinder",f:"V = πr²h"},
-    {n:"Gradient",f:"m = (y₂-y₁)/(x₂-x₁)"},
-    {n:"Nth Term",f:"aₙ = a + (n-1)d"},
-    {n:"Sin Rule",f:"a/sinA = b/sinB = c/sinC"},
-    {n:"Cos Rule",f:"a² = b² + c² - 2bc·cosA"},
-    {n:"Probability",f:"P(A) = favourable / total"},
+    {n:"Quadratic Formula",f:"x = \u207b\u1d47 \u00b1 \u221a(\u1d47\u00b2\u22124\u1d43\u1d9c) \u00f7 2\u1d43"},
+    {n:"Pythagoras",f:"a\u00b2 + b\u00b2 = c\u00b2"},
+    {n:"Area of Circle",f:"A = \u03c0r\u00b2"},
+    {n:"Circumference",f:"C = 2\u03c0r"},
+    {n:"Volume of Cylinder",f:"V = \u03c0r\u00b2h"},
+    {n:"Volume of Cone",f:"V = \u2153\u03c0r\u00b2h"},
+    {n:"Volume of Sphere",f:"V = \u2074\u2044\u2083\u03c0r\u00b3"},
+    {n:"Gradient",f:"m = (y\u2082\u2212y\u2081) \u00f7 (x\u2082\u2212x\u2081)"},
+    {n:"Nth Term",f:"a\u2099 = a + (n\u22121)d"},
+    {n:"Sum of AP",f:"S\u2099 = \u207f\u2044\u2082 \u00d7 (2a + (n\u22121)d)"},
+    {n:"Sin Rule",f:"a \u00f7 sinA = b \u00f7 sinB = c \u00f7 sinC"},
+    {n:"Cos Rule",f:"a\u00b2 = b\u00b2 + c\u00b2 \u2212 2bc\u00b7cosA"},
+    {n:"Area of Triangle",f:"A = \u00bd ab\u00b7sinC"},
+    {n:"Probability",f:"P(A) = favourable \u00f7 total"},
   ],
   Physics:[
-    {n:"Speed",f:"v = d/t"},
+    {n:"Speed",f:"v = d \u00f7 t"},
+    {n:"Acceleration",f:"a = (v\u2212u) \u00f7 t"},
     {n:"Force",f:"F = ma"},
+    {n:"Weight",f:"W = mg"},
     {n:"Momentum",f:"p = mv"},
     {n:"Work Done",f:"W = Fd"},
-    {n:"Power",f:"P = W/t"},
-    {n:"KE",f:"KE = ½mv²"},
-    {n:"PE",f:"PE = mgh"},
+    {n:"Power",f:"P = W \u00f7 t"},
+    {n:"Kinetic Energy",f:"KE = \u00bdmv\u00b2"},
+    {n:"Potential Energy",f:"PE = mgh"},
+    {n:"Pressure",f:"P = F \u00f7 A"},
     {n:"Ohm's Law",f:"V = IR"},
-    {n:"Wave Speed",f:"v = fλ"},
+    {n:"Wave Speed",f:"v = f\u03bb"},
     {n:"v = u + at",f:"v = u + at"},
-    {n:"s = ut + ½at²",f:"s = ut + ½at²"},
+    {n:"s = ut + \u00bdat\u00b2",f:"s = ut + \u00bdat\u00b2"},
+    {n:"v\u00b2 = u\u00b2 + 2as",f:"v\u00b2 = u\u00b2 + 2as"},
   ],
   Chemistry:[
-    {n:"Moles",f:"n = m/M"},
-    {n:"Concentration",f:"c = n/V"},
-    {n:"% Yield",f:"yield% = (actual/theoretical) × 100"},
-    {n:"pH",f:"pH = -log[H⁺]"},
+    {n:"Moles",f:"n = m \u00f7 M"},
+    {n:"Concentration",f:"c = n \u00f7 V"},
+    {n:"% Yield",f:"yield% = (actual \u00f7 theoretical) \u00d7 100"},
+    {n:"pH",f:"pH = \u2212log[H\u207a]"},
+    {n:"Atom Economy",f:"atom economy = (useful mass \u00f7 total mass) \u00d7 100"},
   ],
   Biology:[
-    {n:"Magnification",f:"mag = image size / actual size"},
-    {n:"Photosynthesis",f:"6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂"},
-    {n:"Aerobic Respiration",f:"C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ATP"},
-    {n:"BMI",f:"BMI = mass(kg) / height²(m)"},
+    {n:"Magnification",f:"mag = image size \u00f7 actual size"},
+    {n:"Photosynthesis",f:"6CO\u2082 + 6H\u2082O \u2192 C\u2086H\u2081\u2082O\u2086 + 6O\u2082"},
+    {n:"Aerobic Respiration",f:"C\u2086H\u2081\u2082O\u2086 + 6O\u2082 \u2192 6CO\u2082 + 6H\u2082O + ATP"},
+    {n:"Anaerobic (yeast)",f:"glucose \u2192 ethanol + CO\u2082"},
+    {n:"BMI",f:"BMI = mass(kg) \u00f7 height\u00b2(m)"},
   ],
 };
 
@@ -118,11 +144,95 @@ async function ask(prompt,system){
 
 const getNotes=(s,t)=>ask(`BGCSE Botswana notes for "${t}" in ${s}. JSON only: {"summary":"2 sentences","keyPoints":["p1","p2","p3","p4"],"formula":"or null","rememberThis":"exam tip"}`,"BGCSE Botswana teacher. Return raw JSON only.").then(r=>JSON.parse(r.replace(/```json|```/g,"").trim()));
 
-const getExam=(s,t)=>ask(`BGCSE Botswana exam question for "${t}" in ${s}. JSON only: {"question":"text","marks":4,"parts":[{"part":"(a)","question":"q","marks":2,"answer":"ans","working":"steps"},{"part":"(b)","question":"q","marks":2,"answer":"ans","working":"steps"}],"tip":"examiner tip"}`,"BGCSE Botswana examiner. Return raw JSON only.").then(r=>JSON.parse(r.replace(/```json|```/g,"").trim()));
+const getExam=(s,t)=>ask(`BGCSE Botswana exam question for "${t}" in ${s}. JSON only: {"question":"text","marks":4,"parts":[{"part":"(a)","question":"q","marks":2,"answer":"final answer with units","working":"Step 1: write formula\nStep 2: substitute values\nStep 3: calculate\nStep 4: final answer"},{"part":"(b)","question":"q","marks":2,"answer":"final answer with units","working":"Step 1: write formula\nStep 2: substitute values\nStep 3: calculate\nStep 4: final answer"}],"tip":"examiner tip"}. IMPORTANT: In the working field, write each step on a new line starting with what you do. Use proper math notation like x^2 for squared, sqrt() for roots, fractions as a/b.`,"BGCSE Botswana examiner. Show clear step-by-step working. Return raw JSON only.")
+  .then(r=>JSON.parse(r.replace(/```json|```/g,"").trim()));
 
 const chatTutor=(msgs,s,t)=>ask(msgs.map(m=>m.role+": "+m.content).join("\n"),`Expert BGCSE tutor in Botswana. Subject: ${s}. Topic: "${t}". Be encouraging, step-by-step. Plain text only.`);
 
-// ── COMPONENTS ────────────────────────────────────────────────────────────────
+// ── MATH RENDERER ─────────────────────────────────────────────────────────────
+function Math({tex,display=false,color}){
+  const ref=useRef();
+  useEffect(()=>{
+    if(ref.current&&window.katex){
+      try{
+        window.katex.render(tex,ref.current,{
+          displayMode:display,
+          throwOnError:false,
+          errorColor:"#ff4444",
+          macros:{"\\half":"\\frac{1}{2}"},
+        });
+        if(color) ref.current.style.color=color;
+      }catch(e){
+        ref.current.innerText=tex;
+      }
+    }
+  },[tex,display,color]);
+  return <span ref={ref} style={{color:color||"inherit"}}/>;
+}
+
+// Renders text that may contain $...$ inline math and $$...$$ display math
+function MathText({text,color}){
+  if(!text) return null;
+  // Split by $$...$$ first (display), then $...$ (inline)
+  const parts=[];
+  let remaining=text;
+  let key=0;
+
+  // Process display math $$...$$
+  const displayRegex=/\$\$([^$]+)\$\$/g;
+  const segments=remaining.split(displayRegex);
+
+  segments.forEach((seg,i)=>{
+    if(i%2===1){
+      // This is display math
+      parts.push(<div key={key++} style={{margin:"8px 0"}}><Math tex={seg} display={true} color={color}/></div>);
+    } else {
+      // Process inline math $...$
+      const inlineParts=seg.split(/\$([^$]+)\$/g);
+      inlineParts.forEach((p,j)=>{
+        if(j%2===1){
+          parts.push(<Math key={key++} tex={p} color={color}/>);
+        } else if(p){
+          parts.push(<span key={key++} style={{color:color||"inherit"}}>{p}</span>);
+        }
+      });
+    }
+  });
+
+  return <>{parts}</>;
+}
+
+// Step-by-step working renderer
+function WorkingSteps({working}){
+  if(!working) return null;
+  // Split by newlines into steps
+  const lines=working.split("\n").filter(l=>l.trim());
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:0}}>
+      {lines.map((line,i)=>{
+        const isResult=line.includes("=")&&i>0;
+        return(
+          <div key={i} className="math-step" style={{borderLeftColor:i===lines.length-1?"#39ff14":"#1e3a1e"}}>
+            <div className="math-step-num">Step {i+1}</div>
+            <div style={{fontSize:15}}>
+              <MathText text={line} color={i===lines.length-1?"#39ff14":"#8aca8a"}/>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Formula card with beautiful Unicode math display
+function FormulaCard({name,formula,color}){
+  return(
+    <div style={{background:"#111",border:"1px solid #1a1a1a",borderRadius:14,padding:"14px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}>
+      <div style={{fontSize:12,color:"#555",flexShrink:0,minWidth:90}}>{name}</div>
+      <div style={{fontSize:16,color:color||"#39ff14",textAlign:"right",fontFamily:"'Georgia',serif",letterSpacing:.3}}>{formula}</div>
+    </div>
+  );
+}
 const Dot=({n=3,color=G})=>(
   <div style={{display:"flex",gap:5,padding:"10px 0"}}>
     {[...Array(n)].map((_,i)=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:color,animation:`bounce 1s ${i*.15}s infinite`}}/>)}
@@ -268,9 +378,9 @@ function Notes({subject,topic,color}){
 
       {/* Formula */}
       {data.formula&&(
-        <div style={{background:"#111",border:`1px solid ${G}22`,borderRadius:16,padding:"14px 16px"}}>
-          <div style={{fontSize:10,letterSpacing:3,color:"#444",marginBottom:6,textTransform:"uppercase"}}>Formula</div>
-          <div style={{fontFamily:"monospace",fontSize:16,color:G,letterSpacing:.5}}>{data.formula}</div>
+        <div style={{background:"#111",border:`1px solid ${G}22`,borderRadius:16,padding:"16px"}}>
+          <div style={{fontSize:10,letterSpacing:3,color:"#444",marginBottom:10,textTransform:"uppercase"}}>Formula</div>
+          <div style={{fontSize:18,color:color,fontFamily:"'Georgia',serif",letterSpacing:.5}}>{data.formula}</div>
         </div>
       )}
 
@@ -334,12 +444,12 @@ function Exam({subject,topic,color,user,onResult}){
           ):(
             <div style={{animation:"fadeUp .25s ease"}}>
               <div style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:10,padding:"12px",marginBottom:10}}>
-                <div style={{fontSize:9,letterSpacing:2,color:"#333",marginBottom:6,textTransform:"uppercase"}}>Working</div>
-                <div style={{fontFamily:"monospace",fontSize:12,color:"#4a7a5a",lineHeight:1.9,whiteSpace:"pre-wrap"}}>{p.working}</div>
+                <div style={{fontSize:9,letterSpacing:2,color:"#333",marginBottom:8,textTransform:"uppercase"}}>Step-by-Step Working</div>
+                <WorkingSteps working={p.working}/>
               </div>
               <div style={{background:"rgba(57,255,20,0.05)",border:`1px solid ${G}22`,borderRadius:10,padding:"10px 12px",marginBottom:12}}>
-                <div style={{fontSize:9,letterSpacing:2,color:G,marginBottom:4,textTransform:"uppercase"}}>Answer</div>
-                <div style={{color:"#8aca8a",fontSize:13,lineHeight:1.6}}>{p.answer}</div>
+                <div style={{fontSize:9,letterSpacing:2,color:G,marginBottom:6,textTransform:"uppercase"}}>Final Answer</div>
+                <div style={{fontSize:15}}><MathText text={p.answer} color="#8aca8a"/></div>
               </div>
               {marks[i]===undefined?(
                 <div>
@@ -432,14 +542,14 @@ function Tutor({subject,topic,color,name}){
 // ── FORMULA SHEET ─────────────────────────────────────────────────────────────
 function FormulaSheet(){
   const [active,setActive]=useState("Maths");
-  const subj=SUBJECTS.find(s=>s.label===active||s.id===active.toLowerCase());
+  const subj=SUBJECTS.find(s=>s.label===active);
   const formulas=FORMULAS[active]||[];
 
   return(
     <div style={{animation:"fadeUp .4s ease"}}>
       <div style={{marginBottom:18}}>
         <div style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:4}}>Formula Sheet 📐</div>
-        <div style={{fontSize:12,color:"#444"}}>Quick reference for all subjects</div>
+        <div style={{fontSize:12,color:"#444"}}>Tap a subject to see its formulas</div>
       </div>
 
       <div style={{display:"flex",gap:8,marginBottom:16,overflowX:"auto",paddingBottom:4}}>
@@ -452,9 +562,8 @@ function FormulaSheet(){
 
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {formulas.map((f,i)=>(
-          <div key={i} style={{background:"#111",border:"1px solid #1a1a1a",borderRadius:14,padding:"14px 16px",animation:`fadeUp .3s ease ${i*.04}s both`,display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}>
-            <div style={{fontSize:12,color:"#666",flexShrink:0,minWidth:80}}>{f.n}</div>
-            <div style={{fontFamily:"monospace",fontSize:14,color:subj?.color||G,textAlign:"right"}}>{f.f}</div>
+          <div key={i} style={{animation:`fadeUp .3s ease ${i*.04}s both`}}>
+            <FormulaCard name={f.n} formula={f.f} color={subj?.color}/>
           </div>
         ))}
       </div>
@@ -935,6 +1044,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
+
 
 
 
