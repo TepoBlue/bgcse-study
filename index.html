@@ -142,7 +142,7 @@ const getExam=(s,t)=>ask(`BGCSE Botswana exam question for "${t}" in ${s}. JSON 
 const chatTutor=(msgs,s,t)=>ask(msgs.map(m=>m.role+": "+m.content).join("\n"),`Expert BGCSE tutor in Botswana. Subject: ${s}. Topic: "${t}". Be encouraging, step-by-step. Plain text only.`);
 
 // ── MATH RENDERER ─────────────────────────────────────────────────────────────
-function Math({tex,display=false,color}){
+function MathRender({tex,display=false,color}){
   const ref=useRef();
   useEffect(()=>{
     if(ref.current&&window.katex){
@@ -177,13 +177,13 @@ function MathText({text,color}){
   segments.forEach((seg,i)=>{
     if(i%2===1){
       // This is display math
-      parts.push(<div key={key++} style={{margin:"8px 0"}}><Math tex={seg} display={true} color={color}/></div>);
+      parts.push(<div key={key++} style={{margin:"8px 0"}}><MathRender tex={seg} display={true} color={color}/></div>);
     } else {
       // Process inline math $...$
       const inlineParts=seg.split(/\$([^$]+)\$/g);
       inlineParts.forEach((p,j)=>{
         if(j%2===1){
-          parts.push(<Math key={key++} tex={p} color={color}/>);
+          parts.push(<MathRender key={key++} tex={p} color={color}/>);
         } else if(p){
           parts.push(<span key={key++} style={{color:color||"inherit"}}>{p}</span>);
         }
@@ -1036,7 +1036,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
-
 
 
 
