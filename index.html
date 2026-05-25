@@ -36,8 +36,7 @@ const {useState,useEffect,useRef,useMemo}=React;
 const G="#39ff14";
 const VALID_CODES=["BGCSE2024","STUDY001","STUDY002","STUDY003","STUDY004","STUDY005","STUDY006","STUDY007","STUDY008","STUDY009","STUDY010"];
 const TEACHER_CODE="TEACHER123";
-// ✅ PASTE YOUR OPENROUTER API KEY HERE (get it free at openrouter.ai):
-const API_KEY="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";
+// ✅ API key is now safely stored in Netlify environment variables — not here!
 
 const QUOTES=[
   "The secret of getting ahead is getting started.",
@@ -399,28 +398,16 @@ const db={
   set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}},
 };
 
-// ── API (OpenRouter — FREE tier) ─────────────────────────────────────────────
+// ── API (Netlify Function proxy — key is safe on server) ─────────────────────
 async function ask(prompt,system){
-  const r=await fetch("https://openrouter.ai/api/v1/chat/completions",{
+  const r=await fetch("/.netlify/functions/ai",{
     method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":`Bearer ${API_KEY}`,
-      "HTTP-Referer":"https://lucky-semolina-151d7b.netlify.app",
-      "X-Title":"EduTee Tech BGCSE"
-    },
-    body:JSON.stringify({
-      model:"meta-llama/llama-3.1-8b-instruct:free",
-      max_tokens:1200,
-      messages:[
-        {role:"system",content:system},
-        {role:"user",content:prompt}
-      ]
-    })
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt,system})
   });
   const d=await r.json();
-  if(d.error) throw new Error(d.error.message);
-  return d.choices?.[0]?.message?.content||"";
+  if(d.error) throw new Error(d.error);
+  return d.text||"";
 }
 
 const getNotes=(s,t)=>ask(
@@ -1245,6 +1232,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
+
 
 
 
