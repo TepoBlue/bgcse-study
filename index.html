@@ -14,8 +14,6 @@ body{background:#0a0a0a;font-family:'Segoe UI',sans-serif;color:#fff;min-height:
 ::-webkit-scrollbar-thumb{background:#39ff14;border-radius:4px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideRight{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
-@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(57,255,20,0.4)}50%{box-shadow:0 0 0 8px rgba(57,255,20,0)}}
 @keyframes bounce{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-5px);opacity:1}}
 @keyframes glow{0%,100%{text-shadow:0 0 10px rgba(57,255,20,0.5)}50%{text-shadow:0 0 20px rgba(57,255,20,0.9),0 0 40px rgba(57,255,20,0.3)}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -35,10 +33,11 @@ input{font-family:'Segoe UI',sans-serif;outline:none;width:100%}
 const {useState,useEffect,useRef,useMemo}=React;
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-const G="#39ff14"; // electric green
+const G="#39ff14";
 const VALID_CODES=["BGCSE2024","STUDY001","STUDY002","STUDY003","STUDY004","STUDY005","STUDY006","STUDY007","STUDY008","STUDY009","STUDY010"];
 const TEACHER_CODE="TEACHER123";
-const API_KEY="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";
+// ✅ PASTE YOUR FREE GOOGLE GEMINI API KEY HERE (get it free at aistudio.google.com):
+const API_KEY="AIzaSyCsgYt-rjVv66j2sHQ4b2EalvgMZQOgRR8";
 
 const QUOTES=[
   "The secret of getting ahead is getting started.",
@@ -49,55 +48,350 @@ const QUOTES=[
   "In Botswana we rise together. Study hard, shine bright. 🇧🇼",
   "Believe you can and you're halfway there.",
   "Education is the most powerful weapon.",
+  "Success is the sum of small efforts repeated every day.",
+  "Push yourself — no one else will do it for you. 🇧🇼",
 ];
 
+// ── SUBJECTS (BEC Syllabus Aligned) ──────────────────────────────────────────
 const SUBJECTS=[
-  {id:"maths",label:"Maths",icon:"∑",color:"#3b82f6",topics:["Number Systems & Place Value","Fractions, Decimals & Percentages","Ratio & Proportion","Indices & Standard Form","Algebra — Expressions & Simplification","Linear Equations & Inequalities","Simultaneous Equations","Quadratic Equations & Factorisation","Sequences & Patterns","Functions & Graphs","Coordinate Geometry","Angles & Parallel Lines","Triangles & Congruence","Pythagoras Theorem","Circle Theorems","Trigonometry — Sin, Cos, Tan","Sine & Cosine Rules","Mensuration — Perimeter & Area","Mensuration — Volume & Surface Area","Vectors","Matrices & Transformations","Transformation Geometry","Statistics — Data & Averages","Probability","Sets & Venn Diagrams"]},
-  {id:"physics",label:"Physics",icon:"⚡",color:"#f59e0b",topics:["Measurements & Units","Scalar & Vector Quantities","Distance, Speed & Velocity","Acceleration & Equations of Motion","Distance-Time & Velocity-Time Graphs","Forces & Newton's Laws","Momentum & Impulse","Work, Energy & Power","Efficiency & Energy Transfer","Pressure in Solids & Fluids","Archimedes Principle","Thermal Expansion","Heat Capacity & Specific Heat","Latent Heat","Waves — Properties & Types","Light — Reflection & Refraction","Lenses & Optical Instruments","Sound Waves","Static Electricity","Electric Circuits","Ohm's Law & Resistance","Electrical Power & Energy","Magnetism & Electromagnetism","Electromagnetic Induction","Radioactivity","Nuclear Energy"]},
-  {id:"chemistry",label:"Chemistry",icon:"⚗",color:"#10b981",topics:["Particle Theory","Diffusion & Brownian Motion","Separation Techniques","Atomic Structure","Electronic Configuration","The Periodic Table","Ionic Bonding","Covalent Bonding","Metallic Bonding","Chemical Formulae","Balancing Equations","The Mole Concept","Stoichiometry","Acids & Bases","Salts — Preparation","Redox Reactions","Electrolysis","Rates of Reaction","Energy Changes","Reactivity Series","Extraction of Metals","Non-metals — Oxygen & Nitrogen","Non-metals — Carbon & Sulphur","Organic Chemistry — Alkanes & Alkenes","Organic Chemistry — Alcohols","Industrial Processes"]},
-  {id:"biology",label:"Biology",icon:"🧬",color:"#ec4899",topics:["Characteristics of Living Things","Cell Structure","Cell Organisation","Diffusion","Osmosis","Active Transport","Biological Molecules — Carbohydrates","Biological Molecules — Proteins","Enzymes","Photosynthesis","Mineral Salts & Plant Nutrition","Human Digestive System","Absorption & Assimilation","Aerobic Respiration","Anaerobic Respiration","Gas Exchange in Humans","Gas Exchange in Plants","Transport in Plants","Human Circulatory System","Blood & Blood Groups","Excretion — Kidneys & Skin","Homeostasis","Nervous System","Hormones","Human Reproduction","Plant Reproduction","Genetics & Inheritance","DNA & Genetic Engineering","Evolution","Ecology & Food Chains","Human Impact on Environment","Disease & Immunity"]},
+  {
+    id:"maths",
+    label:"Maths",
+    icon:"∑",
+    color:"#3b82f6",
+    topics:[
+      "Number Systems & Place Value",
+      "Fractions, Decimals & Percentages",
+      "Ratio & Proportion",
+      "Indices & Standard Form",
+      "Algebra — Expressions & Simplification",
+      "Linear Equations & Inequalities",
+      "Simultaneous Equations",
+      "Quadratic Equations & Factorisation",
+      "Sequences & Patterns",
+      "Functions & Graphs",
+      "Coordinate Geometry",
+      "Angles & Parallel Lines",
+      "Triangles & Congruence",
+      "Pythagoras Theorem",
+      "Circle Theorems",
+      "Trigonometry — Sin, Cos, Tan",
+      "Sine & Cosine Rules",
+      "Mensuration — Perimeter & Area",
+      "Mensuration — Volume & Surface Area",
+      "Vectors",
+      "Matrices & Transformations",
+      "Transformation Geometry",
+      "Statistics — Data & Averages",
+      "Probability",
+      "Sets & Venn Diagrams"
+    ]
+  },
+  {
+    id:"physics",
+    label:"Physics",
+    icon:"⚡",
+    color:"#f59e0b",
+    code:"0571",
+    topics:[
+      // Section 1: General Physics
+      "Length & Time Measurement",
+      "Motion — Speed, Velocity & Acceleration",
+      "Motion Graphs — Distance-Time & Speed-Time",
+      "Free Fall, g & Terminal Velocity",
+      "Mass, Weight & Centre of Mass",
+      "Density",
+      "Forces — Hooke's Law & Elasticity",
+      "Newton's Laws of Motion & Friction",
+      "Turning Effects of Forces & Moments",
+      "Scalars & Vectors",
+      "Energy — Forms, Sources & Conservation",
+      "Energy in Botswana — Solar, Wind & Hydro",
+      "Work & Power",
+      "Pressure — Solids, Fluids & Atmosphere",
+      // Section 2: Thermal Physics
+      "Kinetic Particle Theory & States of Matter",
+      "Evaporation & Gas Behaviour",
+      "Boyle's Law & Gas Pressure",
+      "Thermal Expansion of Solids, Liquids & Gases",
+      "Temperature Measurement & Thermometers",
+      "Specific Heat Capacity",
+      "Latent Heat — Melting & Boiling",
+      "Conduction, Convection & Radiation",
+      // Section 3: Waves, Light & Sound
+      "General Wave Properties",
+      "Transverse & Longitudinal Waves",
+      "Light — Reflection & Plane Mirrors",
+      "Light — Refraction & Refractive Index",
+      "Total Internal Reflection & Optical Fibres",
+      "Lenses & Optical Instruments",
+      "Electromagnetic Spectrum",
+      "Sound — Production & Propagation",
+      "Sound — Echo, Pitch & Loudness",
+      // Section 4: Electricity & Magnetism
+      "Magnetism & Magnetic Fields",
+      "Static Electricity & Electric Charge",
+      "Electric Current, EMF & Potential Difference",
+      "Resistance & Ohm's Law",
+      "Electric Circuits — Series & Parallel",
+      "Electrical Power, Energy & Home Safety",
+      "Electromagnetic Induction & AC Generator",
+      "Transformers & Power Transmission",
+      "Force on a Current-Carrying Conductor",
+      "DC Motor & Loudspeaker",
+      "Introductory Electronics — Diodes & Transistors",
+      // Section 5: Atomic Physics
+      "Radioactivity — Nature, Types & Detection",
+      "Nuclear Structure, Isotopes & Half-Life",
+      "Nuclear Fission, Fusion & Nuclear Energy"
+    ]
+  },
+  {
+    id:"chemistry",
+    label:"Chemistry",
+    icon:"⚗",
+    color:"#10b981",
+    code:"0570",
+    topics:[
+      // Section 1: Matter
+      "Particulate Nature of Matter & States of Matter",
+      "Diffusion in Gases & Liquids",
+      "Atomic Structure — Protons, Neutrons & Electrons",
+      "Electronic Configuration & Isotopes",
+      "The Periodic Table — Groups, Periods & Trends",
+      "Group I — Alkali Metals",
+      "Group VII — Halogens",
+      "Transition Metals & Noble Gases",
+      "Ionic Bonding",
+      "Covalent Bonding",
+      "Metallic Bonding & Properties",
+      // Section 2: Chemical Reactions
+      "Energy Changes — Exothermic & Endothermic",
+      "Rates of Reaction",
+      "Enzymes & Catalysts",
+      "Reversible Reactions & Dynamic Equilibrium",
+      "Redox Reactions — Oxidation & Reduction",
+      "Electrolysis",
+      "Acids, Bases & pH",
+      "Salts — Preparation & Purification",
+      "Qualitative Analysis — Cation & Anion Tests",
+      // Section 3: Stoichiometry
+      "Chemical Formulae & Balancing Equations",
+      "The Mole Concept & Avogadro's Number",
+      "Chemical Calculations — Empirical Formula & % Yield",
+      "Quantitative Analysis & Acid-Base Titration",
+      // Section 4: Metals & Non-Metals
+      "Properties of Metals & Reactivity Series",
+      "Extraction of Metals — Iron & Aluminium",
+      "Uses of Metals & Alloys",
+      "Chlorine — Properties, Preparation & Uses",
+      "Sulphur & Sulphuric Acid (Contact Process)",
+      "Carbon — Diamond, Graphite & Allotropes",
+      "Carbonates & their Reactions",
+      "Nitrogen & the Haber Process",
+      // Section 5: Chemistry in the Environment
+      "Water — Properties, Hardness & Treatment",
+      "Air — Composition, Pollution & Ozone Layer",
+      "Fuels — Combustion & Fossil Fuels",
+      "Recycling & Conservation of Resources",
+      // Section 6: Carbon Chemistry
+      "Homologous Series & Structural Formulae",
+      "Alkanes & Petroleum Fractions",
+      "Alkenes — Properties & Addition Polymerisation",
+      "Alkanols — Fermentation, Properties & Uses",
+      "Alkanoic Acids & Esters",
+      "Synthetic Polymers — Nylon & Terylene",
+      "Natural Macromolecules — Proteins, Fats & Carbohydrates"
+    ]
+  },
+  {
+    id:"biology",
+    label:"Biology",
+    icon:"🧬",
+    color:"#ec4899",
+    topics:[
+      "Characteristics of Living Things",
+      "Cell Structure",
+      "Cell Organisation",
+      "Diffusion",
+      "Osmosis",
+      "Active Transport",
+      "Biological Molecules — Carbohydrates",
+      "Biological Molecules — Proteins",
+      "Enzymes",
+      "Photosynthesis",
+      "Mineral Salts & Plant Nutrition",
+      "Human Digestive System",
+      "Absorption & Assimilation",
+      "Aerobic Respiration",
+      "Anaerobic Respiration",
+      "Gas Exchange in Humans",
+      "Gas Exchange in Plants",
+      "Transport in Plants",
+      "Human Circulatory System",
+      "Blood & Blood Groups",
+      "Excretion — Kidneys & Skin",
+      "Homeostasis",
+      "Nervous System",
+      "Hormones",
+      "Human Reproduction",
+      "Plant Reproduction",
+      "Genetics & Inheritance",
+      "DNA & Genetic Engineering",
+      "Evolution",
+      "Ecology & Food Chains",
+      "Human Impact on Environment",
+      "Disease & Immunity"
+    ]
+  },
+  {
+    id:"doublescience",
+    label:"Double Science",
+    icon:"🔬",
+    color:"#8b5cf6",
+    code:"0569",
+    topics:[
+      // Biology component
+      "Cell Structure & Organisation",
+      "Movement of Substances — Diffusion, Osmosis & Active Transport",
+      "Photosynthesis & Plant Nutrition",
+      "Human Nutrition & Digestion",
+      "Respiration — Aerobic & Anaerobic",
+      "Gas Exchange in Humans & Plants",
+      "Transport in Plants — Xylem & Phloem",
+      "Human Circulatory System & Blood",
+      "Excretion & Homeostasis",
+      "Nervous System & Hormones",
+      "Human & Plant Reproduction",
+      "Genetics, DNA & Inheritance",
+      "Evolution, Ecology & Environment",
+      "Disease, Immunity & Human Impact",
+      // Chemistry component
+      "States of Matter, Atomic Structure & Bonding",
+      "The Periodic Table & Chemical Trends",
+      "Chemical Equations & the Mole",
+      "Acids, Bases, Salts & Electrolysis",
+      "Rates of Reaction & Energy Changes",
+      "Metals, Reactivity Series & Extraction",
+      "Organic Chemistry — Alkanes, Alkenes & Alcohols",
+      "Chemistry in the Environment — Water, Air & Fuels",
+      // Physics component
+      "Motion, Forces & Newton's Laws",
+      "Energy, Work & Power",
+      "Pressure & Density",
+      "Thermal Physics — Heat, Temperature & Transfer",
+      "Wave Properties & Electromagnetic Spectrum",
+      "Light — Reflection, Refraction & Lenses",
+      "Sound Waves",
+      "Electricity — Circuits, Resistance & Power",
+      "Magnetism & Electromagnetism",
+      "Radioactivity & Nuclear Physics"
+    ]
+  }
 ];
 
+// ── FORMULAS (BEC Syllabus Aligned) ──────────────────────────────────────────
 const FORMULAS={
   Maths:[
     {n:"Quadratic Formula",f:"x = (-b ± √(b²-4ac)) / 2a"},
     {n:"Pythagoras",f:"a² + b² = c²"},
     {n:"Area of Circle",f:"A = πr²"},
+    {n:"Circumference",f:"C = 2πr"},
     {n:"Volume of Cylinder",f:"V = πr²h"},
+    {n:"Volume of Sphere",f:"V = (4/3)πr³"},
     {n:"Gradient",f:"m = (y₂-y₁)/(x₂-x₁)"},
-    {n:"Nth Term",f:"aₙ = a + (n-1)d"},
+    {n:"Straight Line",f:"y = mx + c"},
+    {n:"Nth Term (AP)",f:"aₙ = a + (n-1)d"},
     {n:"Sin Rule",f:"a/sinA = b/sinB = c/sinC"},
     {n:"Cos Rule",f:"a² = b² + c² - 2bc·cosA"},
     {n:"Probability",f:"P(A) = favourable / total"},
   ],
   Physics:[
-    {n:"Speed",f:"v = d/t"},
-    {n:"Force",f:"F = ma"},
-    {n:"Momentum",f:"p = mv"},
-    {n:"Work Done",f:"W = Fd"},
-    {n:"Power",f:"P = W/t"},
-    {n:"KE",f:"KE = ½mv²"},
-    {n:"PE",f:"PE = mgh"},
-    {n:"Ohm's Law",f:"V = IR"},
-    {n:"Wave Speed",f:"v = fλ"},
+    {n:"Speed",f:"v = s/t"},
+    {n:"Acceleration",f:"a = (v-u)/t"},
     {n:"v = u + at",f:"v = u + at"},
     {n:"s = ut + ½at²",f:"s = ut + ½at²"},
+    {n:"v² = u² + 2as",f:"v² = u² + 2as"},
+    {n:"Weight",f:"W = mg"},
+    {n:"Force (F=ma)",f:"F = ma"},
+    {n:"Momentum",f:"p = mv"},
+    {n:"Moment of Force",f:"Moment = F × d"},
+    {n:"Density",f:"ρ = m/V"},
+    {n:"Pressure",f:"P = F/A"},
+    {n:"Fluid Pressure",f:"P = ρgh"},
+    {n:"Work Done",f:"W = F × s"},
+    {n:"Power",f:"P = W/t"},
+    {n:"KE",f:"KE = ½mv²"},
+    {n:"GPE",f:"GPE = mgh"},
+    {n:"Efficiency",f:"η = (useful output/input) × 100%"},
+    {n:"Specific Heat",f:"Q = mcΔT"},
+    {n:"Boyle's Law",f:"P₁V₁ = P₂V₂"},
+    {n:"Wave Speed",f:"v = fλ"},
+    {n:"Refractive Index",f:"n = sin i / sin r"},
+    {n:"Ohm's Law",f:"V = IR"},
+    {n:"Resistance (series)",f:"R = R₁ + R₂"},
+    {n:"Resistance (parallel)",f:"1/R = 1/R₁ + 1/R₂"},
+    {n:"Electrical Power",f:"P = VI = I²R"},
+    {n:"Electrical Energy",f:"E = VIt"},
+    {n:"Transformer",f:"Vp/Vs = Np/Ns"},
+    {n:"Transformer (power)",f:"VpIp = VsIs"},
+    {n:"Charge",f:"Q = It"},
+    {n:"Half-Life",f:"N = N₀ × (½)ⁿ"},
+    {n:"E = mc²",f:"E = mc²"},
   ],
   Chemistry:[
-    {n:"Moles",f:"n = m/M"},
-    {n:"Concentration",f:"c = n/V"},
+    {n:"Moles (mass)",f:"n = m / M"},
+    {n:"Moles (solution)",f:"n = c × V"},
+    {n:"Concentration",f:"c = n / V"},
     {n:"% Yield",f:"yield% = (actual/theoretical) × 100"},
+    {n:"% Purity",f:"purity% = (pure/sample) × 100"},
+    {n:"% Composition",f:"% = (mass of element/Mr) × 100"},
     {n:"pH",f:"pH = -log[H⁺]"},
+    {n:"Charge (Faraday)",f:"Q = I × t"},
+    {n:"Molar Gas Volume",f:"1 mol gas = 24 dm³ at RTP"},
   ],
   Biology:[
     {n:"Magnification",f:"mag = image size / actual size"},
     {n:"Photosynthesis",f:"6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂"},
     {n:"Aerobic Respiration",f:"C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ATP"},
+    {n:"Anaerobic (yeast)",f:"C₆H₁₂O₆ → 2C₂H₅OH + 2CO₂"},
     {n:"BMI",f:"BMI = mass(kg) / height²(m)"},
+  ],
+  "Double Science":[
+    {n:"Speed",f:"v = s/t"},
+    {n:"F = ma",f:"F = ma"},
+    {n:"Density",f:"ρ = m/V"},
+    {n:"Pressure",f:"P = F/A"},
+    {n:"Power",f:"P = W/t"},
+    {n:"Ohm's Law",f:"V = IR"},
+    {n:"Wave Speed",f:"v = fλ"},
+    {n:"Moles",f:"n = m/M"},
+    {n:"Concentration",f:"c = n/V"},
+    {n:"% Yield",f:"yield% = (actual/theoretical) × 100"},
+    {n:"Photosynthesis",f:"6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂"},
+    {n:"Respiration",f:"C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ATP"},
+    {n:"Magnification",f:"mag = image size / actual size"},
   ],
 };
 
-const EXAM_DATE=new Date("2025-10-13");
+// BEC command words for exam technique
+const BEC_COMMAND_WORDS=`
+BEC BGCSE Command Words:
+- STATE/NAME/LIST/GIVE: Short factual answer only. No explanation needed. 1-2 words or a sentence.
+- DEFINE: Give the formal scientific definition. Learn definitions word-for-word.
+- DESCRIBE: Give a factual account of what happens. Say WHAT, not WHY.
+- EXPLAIN: Give reasons or a mechanism. Say WHY it happens. Use scientific terms.
+- CALCULATE: Show ALL working. Include units in your final answer.
+- SKETCH: Draw a rough but labelled diagram showing key features.
+- SUGGEST: Apply your knowledge to an unfamiliar situation. There may be more than one correct answer.
+- DETERMINE: Find a value from a graph, table or by calculation. Show method.
+- PREDICT: Use a pattern or principle to say what will happen. Give a reason.
+- DISCUSS: Give a balanced account of both sides. Include advantages and disadvantages.
+- COMPARE: State similarities AND differences between two things.
+Exam tip: The number of marks = the number of points expected. 2 marks = write 2 distinct points.
+`;
+
+const EXAM_DATE=new Date("2026-10-13");
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
 const db={
@@ -105,22 +399,53 @@ const db={
   set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}},
 };
 
-// ── API ───────────────────────────────────────────────────────────────────────
+// ── API (Google Gemini — FREE tier) ──────────────────────────────────────────
 async function ask(prompt,system){
-  const r=await fetch("https://api.anthropic.com/v1/messages",{
-    method:"POST",
-    headers:{"Content-Type":"application/json","x-api-key":API_KEY,"anthropic-version":"2023-06-01"},
-    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system,messages:[{role:"user",content:prompt}]})
-  });
+  const r=await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+    {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        contents:[{parts:[{text:system+"\n\n"+prompt}]}],
+        generationConfig:{maxOutputTokens:1200,temperature:0.7}
+      })
+    }
+  );
   const d=await r.json();
-  return d.content?.map(b=>b.text||"").join("")||"";
+  if(d.error) throw new Error(d.error.message);
+  return d.candidates?.[0]?.content?.parts?.[0]?.text||"";
 }
 
-const getNotes=(s,t)=>ask(`BGCSE Botswana notes for "${t}" in ${s}. JSON only: {"summary":"2 sentences","keyPoints":["p1","p2","p3","p4"],"formula":"or null","rememberThis":"exam tip"}`,"BGCSE Botswana teacher. Return raw JSON only.").then(r=>JSON.parse(r.replace(/```json|```/g,"").trim()));
+const getNotes=(s,t)=>ask(
+  `BGCSE Botswana ${s} notes for topic: "${t}". Return raw JSON only, no markdown fences:
+{"summary":"2 clear sentences explaining what this topic is about",
+"keyPoints":["point 1 — explain clearly","point 2","point 3","point 4","point 5"],
+"formula":"key formula or equation for this topic, or null if none",
+"rememberThis":"one specific BEC exam technique tip for this topic — mention command words like State/Explain/Calculate as appropriate"}`,
+  `You are an expert BGCSE Botswana ${s} teacher (BEC syllabus, effective 2020). Give accurate, syllabus-specific notes. Return raw JSON only. No markdown, no preamble.`
+).then(r=>{try{return JSON.parse(r.replace(/```json|```/g,"").trim())}catch{return null}});
 
-const getExam=(s,t)=>ask(`BGCSE Botswana exam question for "${t}" in ${s}. JSON only: {"question":"text","marks":4,"parts":[{"part":"(a)","question":"q","marks":2,"answer":"ans","working":"steps"},{"part":"(b)","question":"q","marks":2,"answer":"ans","working":"steps"}],"tip":"examiner tip"}`,"BGCSE Botswana examiner. Return raw JSON only.").then(r=>JSON.parse(r.replace(/```json|```/g,"").trim()));
+const getExam=(s,t)=>ask(
+  `Write a BGCSE Botswana ${s} exam question about "${t}". Return raw JSON only:
+{"question":"the full question stem",
+"marks":4,
+"parts":[
+  {"part":"(a)","question":"sub-question text","marks":2,"answer":"model answer","working":"step-by-step working or key points","commandWord":"e.g. State / Explain / Calculate"},
+  {"part":"(b)","question":"sub-question text","marks":2,"answer":"model answer","working":"step-by-step working or key points","commandWord":"e.g. State / Explain / Calculate"}
+],
+"tip":"BEC examiner tip — mention the command word used and what examiners look for"}`,
+  `You are a BGCSE Botswana ${s} examiner (BEC 2020 syllabus). Write exam-style questions matching BEC standards. Use correct BEC command words (State, Describe, Explain, Calculate, etc). Return raw JSON only.`
+).then(r=>{try{return JSON.parse(r.replace(/```json|```/g,"").trim())}catch{return null}});
 
-const chatTutor=(msgs,s,t)=>ask(msgs.map(m=>m.role+": "+m.content).join("\n"),`Expert BGCSE tutor in Botswana. Subject: ${s}. Topic: "${t}". Be encouraging, step-by-step. Plain text only.`);
+const chatTutor=(msgs,s,t)=>ask(
+  msgs.map(m=>m.role+": "+m.content).join("\n"),
+  `You are an expert BGCSE Botswana ${s} tutor. Topic: "${t}". BEC syllabus 2020.
+Be encouraging and step-by-step. Use simple language suitable for Form 4/5 students in Botswana.
+When relevant, mention BEC exam technique: how many marks a question is worth = how many points to write.
+Mention BEC command words (State, Explain, Calculate, Describe) when giving advice.
+Plain text only. No markdown formatting.`
+);
 
 // ── COMPONENTS ────────────────────────────────────────────────────────────────
 const Dot=({n=3,color=G})=>(
@@ -163,7 +488,7 @@ function Countdown(){
       </div>
       <div>
         <div style={{fontWeight:700,fontSize:13,color:"#fff"}}>BGCSE Countdown 🎯</div>
-        <div style={{fontSize:11,color:"#555",marginTop:2}}>October 2025 · Keep pushing!</div>
+        <div style={{fontSize:11,color:"#555",marginTop:2}}>October 2026 · Keep pushing!</div>
       </div>
     </div>
   );
@@ -176,8 +501,6 @@ function Menu({user,onClose,onLogout,onNav,darkMode,setDarkMode}){
     <>
       <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:200,backdropFilter:"blur(4px)"}}/>
       <div style={{position:"fixed",top:0,right:0,bottom:0,width:"78%",maxWidth:300,background:"#0f0f0f",borderLeft:`1px solid ${G}22`,zIndex:201,animation:"menuSlide .3s cubic-bezier(.4,0,.2,1)",display:"flex",flexDirection:"column"}}>
-
-        {/* Profile */}
         <div style={{padding:"28px 20px 20px",borderBottom:"1px solid #1a1a1a"}}>
           <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:4}}>
             <div style={{width:48,height:48,borderRadius:14,background:`linear-gradient(135deg,${G},#00aa00)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:"#000",flexShrink:0}}>
@@ -189,27 +512,15 @@ function Menu({user,onClose,onLogout,onNav,darkMode,setDarkMode}){
             </div>
           </div>
         </div>
-
-        {/* Nav items */}
         <div style={{flex:1,padding:"16px 12px",display:"flex",flexDirection:"column",gap:4}}>
-          {[
-            {icon:"📚",label:"Study",id:"learn"},
-            {icon:"🔖",label:"Bookmarks",id:"bookmarks"},
-            {icon:"📐",label:"Formula Sheet",id:"formulas"},
-            {icon:"📊",label:"My Results",id:"results"},
-          ].map(item=>(
-            <button key={item.id} onClick={()=>{onNav(item.id);onClose();}} className="btn" style={{display:"flex",alignItems:"center",gap:14,padding:"13px 16px",background:"transparent",borderRadius:12,color:"#aaa",fontSize:14,fontWeight:500,textAlign:"left",border:"none",width:"100%",transition:"all .15s"}}>
-              <span style={{fontSize:20}}>{item.icon}</span>
-              {item.label}
+          {[{icon:"📚",label:"Study",id:"learn"},{icon:"🔖",label:"Bookmarks",id:"bookmarks"},{icon:"📐",label:"Formulas",id:"formulas"},{icon:"📊",label:"My Results",id:"results"}].map(item=>(
+            <button key={item.id} onClick={()=>{onNav(item.id);onClose();}} className="btn" style={{display:"flex",alignItems:"center",gap:14,padding:"13px 16px",background:"transparent",borderRadius:12,color:"#aaa",fontSize:14,fontWeight:500,textAlign:"left",border:"none",width:"100%"}}>
+              <span style={{fontSize:20}}>{item.icon}</span>{item.label}
             </button>
           ))}
-
           <div style={{height:1,background:"#1a1a1a",margin:"8px 4px"}}/>
-
-          {/* Settings */}
           <div style={{padding:"0 4px"}}>
             <div style={{fontSize:10,letterSpacing:3,color:"#333",marginBottom:8,textTransform:"uppercase",paddingLeft:12}}>Settings</div>
-
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px",background:"#151515",borderRadius:12,marginBottom:6}}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <span style={{fontSize:18}}>{darkMode?"🌙":"☀️"}</span>
@@ -221,16 +532,11 @@ function Menu({user,onClose,onLogout,onNav,darkMode,setDarkMode}){
             </div>
           </div>
         </div>
-
-        {/* Footer */}
         <div style={{padding:"16px 20px",borderTop:"1px solid #1a1a1a"}}>
           <button onClick={onLogout} className="btn" style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",background:"rgba(255,50,50,0.08)",border:"1px solid rgba(255,50,50,0.2)",borderRadius:12,color:"#ff5555",fontSize:14,fontWeight:600,width:"100%"}}>
-            <span style={{fontSize:18}}>🚪</span>
-            Log Out
+            <span style={{fontSize:18}}>🚪</span>Log Out
           </button>
-          <div style={{textAlign:"center",marginTop:14,color:"#222",fontSize:11}}>
-            EduTee Tech · Botswana 🇧🇼
-          </div>
+          <div style={{textAlign:"center",marginTop:14,color:"#222",fontSize:11}}>EduTee Tech · Botswana 🇧🇼</div>
         </div>
       </div>
     </>
@@ -249,13 +555,11 @@ function Notes({subject,topic,color}){
 
   return(
     <div style={{display:"flex",flexDirection:"column",gap:12,animation:"fadeUp .35s ease"}}>
-      {/* Summary */}
       <div style={{background:"#111",border:`1.5px solid ${color}33`,borderRadius:16,padding:"16px"}}>
         <div style={{fontSize:10,letterSpacing:3,color,marginBottom:8,textTransform:"uppercase"}}>Overview</div>
         <div style={{color:"#ccc",fontSize:14,lineHeight:1.75}}>{data.summary}</div>
       </div>
 
-      {/* Key Points */}
       <div style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:16,padding:"16px"}}>
         <div style={{fontSize:10,letterSpacing:3,color:"#444",marginBottom:12,textTransform:"uppercase"}}>Key Points</div>
         {data.keyPoints?.map((p,i)=>(
@@ -266,17 +570,15 @@ function Notes({subject,topic,color}){
         ))}
       </div>
 
-      {/* Formula */}
       {data.formula&&(
         <div style={{background:"#111",border:`1px solid ${G}22`,borderRadius:16,padding:"14px 16px"}}>
-          <div style={{fontSize:10,letterSpacing:3,color:"#444",marginBottom:6,textTransform:"uppercase"}}>Formula</div>
+          <div style={{fontSize:10,letterSpacing:3,color:"#444",marginBottom:6,textTransform:"uppercase"}}>Formula / Equation</div>
           <div style={{fontFamily:"monospace",fontSize:16,color:G,letterSpacing:.5}}>{data.formula}</div>
         </div>
       )}
 
-      {/* Remember */}
       <div style={{background:"linear-gradient(135deg,rgba(240,165,0,0.08),rgba(240,165,0,0.04))",border:"1px solid rgba(240,165,0,0.2)",borderRadius:16,padding:"14px 16px"}}>
-        <div style={{fontSize:10,letterSpacing:3,color:"#f0a500",marginBottom:6,textTransform:"uppercase"}}>⭐ Remember</div>
+        <div style={{fontSize:10,letterSpacing:3,color:"#f0a500",marginBottom:6,textTransform:"uppercase"}}>⭐ Exam Tip</div>
         <div style={{color:"#c0a060",fontSize:13,lineHeight:1.65}}>{data.rememberThis}</div>
       </div>
 
@@ -315,7 +617,7 @@ function Exam({subject,topic,color,user,onResult}){
   return(
     <div style={{animation:"fadeUp .35s ease"}}>
       <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-        <div style={{fontSize:10,letterSpacing:3,color:"#333",textTransform:"uppercase"}}>Question</div>
+        <div style={{fontSize:10,letterSpacing:3,color:"#333",textTransform:"uppercase"}}>Exam Question</div>
         <div style={{fontSize:11,color,background:`${color}18`,border:`1px solid ${color}33`,borderRadius:100,padding:"3px 10px",fontFamily:"monospace"}}>{data.marks} marks</div>
       </div>
 
@@ -325,25 +627,28 @@ function Exam({subject,topic,color,user,onResult}){
 
       {data.parts?.map((p,i)=>(
         <div key={i} style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:16,padding:"16px",marginBottom:10}}>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-            <div><span style={{color,fontWeight:800,fontSize:13}}>{p.part} </span><span style={{color:"#ccc",fontSize:14}}>{p.question}</span></div>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+            <div style={{flex:1}}><span style={{color,fontWeight:800,fontSize:13}}>{p.part} </span><span style={{color:"#ccc",fontSize:14}}>{p.question}</span></div>
             <span style={{fontSize:11,color:"#333",fontFamily:"monospace",flexShrink:0,marginLeft:8}}>{p.marks}m</span>
           </div>
+          {p.commandWord&&(
+            <div style={{fontSize:10,color:"#555",marginBottom:8,fontFamily:"monospace"}}>Command word: <span style={{color:"#f0a500"}}>{p.commandWord}</span></div>
+          )}
           {!shown[i]?(
             <GreenBtn outline small onClick={()=>setShown(s=>({...s,[i]:true}))}>Show Answer</GreenBtn>
           ):(
             <div style={{animation:"fadeUp .25s ease"}}>
               <div style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:10,padding:"12px",marginBottom:10}}>
-                <div style={{fontSize:9,letterSpacing:2,color:"#333",marginBottom:6,textTransform:"uppercase"}}>Working</div>
+                <div style={{fontSize:9,letterSpacing:2,color:"#333",marginBottom:6,textTransform:"uppercase"}}>Working / Key Points</div>
                 <div style={{fontFamily:"monospace",fontSize:12,color:"#4a7a5a",lineHeight:1.9,whiteSpace:"pre-wrap"}}>{p.working}</div>
               </div>
               <div style={{background:"rgba(57,255,20,0.05)",border:`1px solid ${G}22`,borderRadius:10,padding:"10px 12px",marginBottom:12}}>
-                <div style={{fontSize:9,letterSpacing:2,color:G,marginBottom:4,textTransform:"uppercase"}}>Answer</div>
+                <div style={{fontSize:9,letterSpacing:2,color:G,marginBottom:4,textTransform:"uppercase"}}>Model Answer</div>
                 <div style={{color:"#8aca8a",fontSize:13,lineHeight:1.6}}>{p.answer}</div>
               </div>
               {marks[i]===undefined?(
                 <div>
-                  <div style={{color:"#444",fontSize:11,marginBottom:8}}>Your marks?</div>
+                  <div style={{color:"#444",fontSize:11,marginBottom:8}}>How many marks did you earn?</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     {[...Array(p.marks+1)].map((_,m)=>(
                       <button key={m} onClick={()=>mark(i,m)} className="btn" style={{padding:"7px 16px",background:"#151515",border:"1px solid #2a2a2a",borderRadius:8,color:"#777",fontSize:13}}>{m}/{p.marks}</button>
@@ -360,15 +665,15 @@ function Exam({subject,topic,color,user,onResult}){
 
       {score&&(
         <div style={{background:`${sc(score.pct)}0d`,border:`1.5px solid ${sc(score.pct)}`,borderRadius:16,padding:"18px",marginBottom:14,animation:"fadeUp .3s ease"}}>
-          <div style={{fontSize:10,letterSpacing:2,color:sc(score.pct),marginBottom:6,textTransform:"uppercase"}}>Score</div>
+          <div style={{fontSize:10,letterSpacing:2,color:sc(score.pct),marginBottom:6,textTransform:"uppercase"}}>Your Score</div>
           <div style={{fontSize:40,fontWeight:900,color:"#fff",lineHeight:1,fontFamily:"monospace"}}>{score.got}/{score.tot}</div>
-          <div style={{color:"#555",fontSize:13,marginTop:6}}>{score.pct}% · {score.pct>=70?"Excellent! 🎉":score.pct>=40?"Good effort 📖":"Keep studying 💪"}</div>
+          <div style={{color:"#555",fontSize:13,marginTop:6}}>{score.pct}% · {score.pct>=70?"Excellent! 🎉":score.pct>=40?"Good effort 📖":"Keep revising 💪"}</div>
         </div>
       )}
 
       {data.tip&&(
         <div style={{background:"rgba(240,165,0,0.06)",border:"1px solid rgba(240,165,0,0.15)",borderRadius:12,padding:"12px 14px",marginBottom:14}}>
-          <div style={{fontSize:9,letterSpacing:2,color:"#f0a500",marginBottom:4,textTransform:"uppercase"}}>💡 Tip</div>
+          <div style={{fontSize:9,letterSpacing:2,color:"#f0a500",marginBottom:4,textTransform:"uppercase"}}>💡 Examiner Tip</div>
           <div style={{color:"#8a7040",fontSize:13}}>{data.tip}</div>
         </div>
       )}
@@ -380,7 +685,7 @@ function Exam({subject,topic,color,user,onResult}){
 
 // ── TUTOR ─────────────────────────────────────────────────────────────────────
 function Tutor({subject,topic,color,name}){
-  const [msgs,setMsgs]=useState([{role:"assistant",content:`Hey ${name}! 👋 Ready to crush ${topic}? Ask me anything!`}]);
+  const [msgs,setMsgs]=useState([{role:"assistant",content:`Hey ${name}! 👋 Ready to master ${topic}? Ask me anything — I'll help you understand AND how to answer it in the exam!`}]);
   const [input,setInput]=useState("");
   const [loading,setLoading]=useState(false);
   const bot=useRef();
@@ -397,7 +702,7 @@ function Tutor({subject,topic,color,name}){
     setLoading(false);
   };
 
-  const quick=["Explain simply","Worked example","Common mistakes","How examined?"];
+  const quick=["Explain simply","Worked example","Common mistakes","How is this examined?","What command words are used?"];
 
   return(
     <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
@@ -416,14 +721,14 @@ function Tutor({subject,topic,color,name}){
       {msgs.length===1&&(
         <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:10,marginTop:6}}>
           {quick.map(q=>(
-            <button key={q} onClick={()=>setInput(`${q} ${topic}`)} className="btn" style={{padding:"6px 12px",background:"#111",border:`1px solid ${G}22`,borderRadius:100,color:"#666",fontSize:12}}>{q}</button>
+            <button key={q} onClick={()=>setInput(`${q}: ${topic}`)} className="btn" style={{padding:"6px 12px",background:"#111",border:`1px solid ${G}22`,borderRadius:100,color:"#666",fontSize:11}}>{q}</button>
           ))}
         </div>
       )}
 
       <div style={{display:"flex",gap:8,background:"#111",border:"1px solid #1e1e1e",borderRadius:14,padding:"4px 4px 4px 14px",marginTop:8}}>
         <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&send()} placeholder="Ask anything..." style={{flex:1,background:"transparent",border:"none",padding:"10px 0",fontSize:14,color:"#fff",borderRadius:0}}/>
-        <button onClick={send} disabled={loading||!input.trim()} className="btn" style={{padding:"10px 16px",background:loading||!input.trim()?"#151515":G,border:"none",borderRadius:10,color:loading||!input.trim()?"#333":"#000",fontWeight:900,fontSize:16,transition:"all .2s"}}>↑</button>
+        <button onClick={send} disabled={loading||!input.trim()} className="btn" style={{padding:"10px 16px",background:loading||!input.trim()?"#151515":G,border:"none",borderRadius:10,color:loading||!input.trim()?"#333":"#000",fontWeight:900,fontSize:16}}>↑</button>
       </div>
     </div>
   );
@@ -433,18 +738,18 @@ function Tutor({subject,topic,color,name}){
 function FormulaSheet(){
   const [active,setActive]=useState("Maths");
   const subj=SUBJECTS.find(s=>s.label===active||s.id===active.toLowerCase());
-  const formulas=FORMULAS[active]||[];
+  const formulas=FORMULAS[active]||FORMULAS["Double Science"]||[];
 
   return(
     <div style={{animation:"fadeUp .4s ease"}}>
       <div style={{marginBottom:18}}>
         <div style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:4}}>Formula Sheet 📐</div>
-        <div style={{fontSize:12,color:"#444"}}>Quick reference for all subjects</div>
+        <div style={{fontSize:12,color:"#444"}}>BEC BGCSE Quick Reference</div>
       </div>
 
       <div style={{display:"flex",gap:8,marginBottom:16,overflowX:"auto",paddingBottom:4}}>
-        {SUBJECTS.map(s=>(
-          <button key={s.id} onClick={()=>setActive(s.label)} className="btn" style={{padding:"7px 16px",borderRadius:100,background:active===s.label?s.color:"#111",color:active===s.label?"#000":"#555",border:`1px solid ${active===s.label?s.color:"#222"}`,fontSize:12,fontWeight:active===s.label?800:400,whiteSpace:"nowrap",flexShrink:0}}>
+        {[...SUBJECTS,{label:"Double Science",color:"#8b5cf6",icon:"🔬"}].filter((s,i,arr)=>arr.findIndex(x=>x.label===s.label)===i).map(s=>(
+          <button key={s.label} onClick={()=>setActive(s.label)} className="btn" style={{padding:"7px 16px",borderRadius:100,background:active===s.label?s.color:"#111",color:active===s.label?"#000":"#555",border:`1px solid ${active===s.label?s.color:"#222"}`,fontSize:12,fontWeight:active===s.label?800:400,whiteSpace:"nowrap",flexShrink:0}}>
             {s.icon} {s.label}
           </button>
         ))}
@@ -453,10 +758,31 @@ function FormulaSheet(){
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {formulas.map((f,i)=>(
           <div key={i} style={{background:"#111",border:"1px solid #1a1a1a",borderRadius:14,padding:"14px 16px",animation:`fadeUp .3s ease ${i*.04}s both`,display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}>
-            <div style={{fontSize:12,color:"#666",flexShrink:0,minWidth:80}}>{f.n}</div>
+            <div style={{fontSize:12,color:"#666",flexShrink:0,minWidth:90}}>{f.n}</div>
             <div style={{fontFamily:"monospace",fontSize:14,color:subj?.color||G,textAlign:"right"}}>{f.f}</div>
           </div>
         ))}
+      </div>
+
+      {/* BEC Command Words reference */}
+      <div style={{marginTop:20,background:"rgba(240,165,0,0.05)",border:"1px solid rgba(240,165,0,0.15)",borderRadius:16,padding:"16px"}}>
+        <div style={{fontSize:10,letterSpacing:3,color:"#f0a500",marginBottom:12,textTransform:"uppercase"}}>📋 BEC Command Words</div>
+        {[
+          {w:"State / Name / Give / List",d:"Short answer only. No explanation needed."},
+          {w:"Define",d:"Give the official scientific definition."},
+          {w:"Describe",d:"Say WHAT happens. Facts only, no reasons."},
+          {w:"Explain",d:"Say WHY it happens. Give reasons/mechanism."},
+          {w:"Calculate",d:"Show ALL working. Include units."},
+          {w:"Suggest",d:"Apply knowledge to unfamiliar situation."},
+          {w:"Determine",d:"Find from graph, table or calculation."},
+          {w:"Sketch",d:"Rough labelled diagram showing key features."},
+        ].map((c,i)=>(
+          <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:i<7?"1px solid #1a1a1a":"none"}}>
+            <div style={{fontSize:12,color:"#f0a500",fontWeight:700,marginBottom:3}}>{c.w}</div>
+            <div style={{fontSize:12,color:"#666",lineHeight:1.5}}>{c.d}</div>
+          </div>
+        ))}
+        <div style={{fontSize:11,color:"#555",marginTop:4,fontStyle:"italic"}}>💡 Marks = Points: 3 marks → write 3 distinct points</div>
       </div>
     </div>
   );
@@ -484,11 +810,11 @@ function Bookmarks({userCode,onSelect}){
         {bm.map((b,i)=>{
           const s=SUBJECTS.find(s=>s.label===b.subject);
           return(
-            <div key={i} className="card" onClick={()=>onSelect(b)} style={{background:"#111",border:`1px solid ${s?.color}22`,borderRadius:14,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,animation:`fadeUp .3s ease ${i*.05}s both`}}>
-              <div style={{width:42,height:42,borderRadius:12,background:`${s?.color}18`,border:`1.5px solid ${s?.color}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{s?.icon}</div>
+            <div key={i} className="card" onClick={()=>onSelect(b)} style={{background:"#111",border:`1px solid ${s?.color||G}22`,borderRadius:14,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,animation:`fadeUp .3s ease ${i*.05}s both`}}>
+              <div style={{width:42,height:42,borderRadius:12,background:`${s?.color||G}18`,border:`1.5px solid ${s?.color||G}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{s?.icon||"📚"}</div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontWeight:700,fontSize:14,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{b.topic}</div>
-                <div style={{fontSize:11,color:s?.color,marginTop:2}}>{b.subject}</div>
+                <div style={{fontSize:11,color:s?.color||G,marginTop:2}}>{b.subject}</div>
               </div>
               <div style={{color:"#333",fontSize:18}}>→</div>
             </div>
@@ -571,7 +897,7 @@ function Teacher({onLogout}){
   return(
     <div style={{minHeight:"100vh",background:"#0a0a0a"}}>
       <header style={{padding:"0 16px",height:54,display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #151515",background:"rgba(10,10,10,0.97)",position:"sticky",top:0,zIndex:100}}>
-        <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>Edu<span style={{color:G}}>Tee</span><span style={{color:"#333",fontSize:12}}> Tech</span></div>
+        <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>Edu<span style={{color:G}}>Tee</span><span style={{color:"#333",fontSize:12}}> Tech · Teacher</span></div>
         <button onClick={onLogout} className="btn" style={{background:"none",border:"1px solid #222",borderRadius:8,padding:"6px 14px",color:"#555",fontSize:12}}>Logout</button>
       </header>
 
@@ -633,10 +959,7 @@ function Teacher({onLogout}){
             {students.map((s,i)=>(
               <div key={i} style={{background:"#111",border:`1px solid ${sc(s.avg)}22`,borderRadius:16,padding:"16px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-                  <div>
-                    <div style={{fontWeight:800,fontSize:15,color:"#fff",marginBottom:2}}>{s.name}</div>
-                    <div style={{fontSize:10,color:"#333",fontFamily:"monospace"}}>{s.code} · {s.attempts}q</div>
-                  </div>
+                  <div><div style={{fontWeight:800,fontSize:15,color:"#fff",marginBottom:2}}>{s.name}</div><div style={{fontSize:10,color:"#333",fontFamily:"monospace"}}>{s.code} · {s.attempts} questions</div></div>
                   <div style={{fontFamily:"monospace",fontSize:24,fontWeight:900,color:sc(s.avg)}}>{s.avg}%</div>
                 </div>
                 <div style={{height:5,background:"#1a1a1a",borderRadius:3,overflow:"hidden",marginBottom:10}}>
@@ -663,10 +986,7 @@ function Teacher({onLogout}){
                 const cr=db.get(`r_${code}`)||[];
                 const names=[...new Set(cr.map(r=>r.studentName).filter(Boolean))];
                 return(<div key={code} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:10,marginBottom:6}}>
-                  <div>
-                    <div style={{fontFamily:"monospace",fontSize:13,color:G,fontWeight:700,letterSpacing:2}}>{code}</div>
-                    <div style={{fontSize:10,color:"#333",marginTop:1}}>{names.length>0?names.join(", "):"Unused"}</div>
-                  </div>
+                  <div><div style={{fontFamily:"monospace",fontSize:13,color:G,fontWeight:700,letterSpacing:2}}>{code}</div><div style={{fontSize:10,color:"#333",marginTop:1}}>{names.length>0?names.join(", "):"Unused"}</div></div>
                   <div style={{fontSize:11,color:cr.length>0?G:"#222",fontFamily:"monospace"}}>{cr.length}×</div>
                 </div>);
               })}
@@ -709,11 +1029,9 @@ function Login({onLogin}){
 
   return(
     <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20,position:"relative",overflow:"hidden"}}>
-      {/* Background glow */}
       <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:300,height:300,background:`radial-gradient(circle,${G}08 0%,transparent 70%)`,pointerEvents:"none"}}/>
 
       <div style={{width:"100%",maxWidth:360,animation:"fadeUp .5s ease",position:"relative"}}>
-        {/* Logo */}
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{fontSize:42,fontWeight:900,letterSpacing:-2,marginBottom:4}} className="glow-text">
             Edu<span style={{color:G}}>Tee</span>
@@ -721,12 +1039,10 @@ function Login({onLogin}){
           <div style={{fontSize:12,color:"#333",letterSpacing:3,textTransform:"uppercase"}}>Tech · Botswana 🇧🇼</div>
         </div>
 
-        {/* Quote */}
         <div style={{background:"#111",border:`1px solid ${G}18`,borderRadius:14,padding:"14px 16px",marginBottom:24}}>
           <div style={{fontSize:13,fontStyle:"italic",color:"#555",lineHeight:1.6}}>"{quote}"</div>
         </div>
 
-        {/* Form */}
         <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:20}}>
           <input value={name} onChange={e=>{setName(e.target.value);setErr("")}} placeholder="Your name" style={{background:"#111",border:`1.5px solid ${err&&!name?"#ff4444":"#1e1e1e"}`,borderRadius:12,color:"#fff",padding:"14px 16px",fontSize:14}}/>
           <input value={code} onChange={e=>{setCode(e.target.value);setErr("")}} placeholder="Access code" onKeyDown={e=>e.key==="Enter"&&go()} style={{background:"#111",border:`1.5px solid ${err&&!code?"#ff4444":"#1e1e1e"}`,borderRadius:12,color:G,padding:"14px 16px",fontSize:14,letterSpacing:3,fontFamily:"monospace",fontWeight:700}}/>
@@ -739,7 +1055,7 @@ function Login({onLogin}){
         </GreenBtn>
 
         <div style={{textAlign:"center",marginTop:20,color:"#222",fontSize:11,lineHeight:1.8}}>
-          BGCSE Botswana Syllabus<br/>
+          BGCSE Botswana · BEC Syllabus 2020<br/>
           No code? Contact your teacher.
         </div>
       </div>
@@ -802,10 +1118,8 @@ function App(){
         .card{transition:all .2s}.card:hover{transform:translateY(-2px)}
       `}</style>
 
-      {/* MENU */}
       {menuOpen&&<Menu user={user} onClose={()=>setMenuOpen(false)} onLogout={()=>{setUser(null);setMenuOpen(false)}} onNav={(id)=>{setBottomTab(id);if(id==="learn")setScreen("home")}} darkMode={darkMode} setDarkMode={setDarkMode}/>}
 
-      {/* HEADER */}
       <header style={{padding:"0 16px",height:54,display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #151515",background:"rgba(10,10,10,0.97)",position:"sticky",top:0,zIndex:100,backdropFilter:"blur(12px)"}}>
         <div style={{fontWeight:900,fontSize:17,cursor:"pointer",color:"#fff"}} onClick={goHome} className="glow-text">
           Edu<span style={{color:G}}>Tee</span>
@@ -818,24 +1132,22 @@ function App(){
         </div>
       </header>
 
-      {/* MAIN */}
       <main style={{flex:1,maxWidth:680,width:"100%",margin:"0 auto",padding:"18px 14px 90px",overflowY:"auto"}}>
 
         {/* HOME */}
         {screen==="home"&&bottomTab==="learn"&&(
           <div style={{animation:"fadeUp .4s ease"}}>
             <Countdown/>
-            {/* Quote */}
             <div style={{background:"#111",border:`1px solid ${G}12`,borderRadius:14,padding:"12px 16px",marginBottom:16}}>
               <div style={{fontSize:13,fontStyle:"italic",color:"#444",lineHeight:1.5}}>"{QUOTES[new Date().getDay()%QUOTES.length]}"</div>
             </div>
-            {/* Subjects */}
             <div style={{fontSize:10,letterSpacing:3,color:"#333",marginBottom:12,textTransform:"uppercase"}}>Choose Subject</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
               {SUBJECTS.map((s,i)=>(
                 <div key={s.id} className="card btn" onClick={()=>{setSubject(s.id);setScreen("topics");setSearch("")}} style={{background:"#111",border:`1.5px solid ${s.color}22`,borderRadius:16,padding:"18px 14px",cursor:"pointer",animation:`fadeUp .4s ease ${i*.08}s both`,position:"relative",overflow:"hidden"}}>
                   <div style={{position:"absolute",top:-20,right:-20,fontSize:60,opacity:.05}}>{s.icon}</div>
-                  <div style={{fontSize:28,marginBottom:10}}>{s.icon}</div>
+                  {s.code&&<div style={{fontSize:8,color:s.color,fontFamily:"monospace",marginBottom:4,letterSpacing:1}}>BEC {s.code}</div>}
+                  <div style={{fontSize:28,marginBottom:8}}>{s.icon}</div>
                   <div style={{fontWeight:800,fontSize:14,color:"#fff",marginBottom:4}}>{s.label}</div>
                   <div style={{fontSize:10,color:s.color,fontFamily:"monospace"}}>{s.topics.length} topics</div>
                 </div>
@@ -844,13 +1156,8 @@ function App(){
           </div>
         )}
 
-        {/* BOOKMARKS */}
         {bottomTab==="bookmarks"&&<Bookmarks userCode={user.code} onSelect={(b)=>{setSubject(b.subjectId);setTopic(b.topic);setStudyTab("notes");setScreen("learn");setBottomTab("learn")}}/>}
-
-        {/* FORMULAS */}
         {bottomTab==="formulas"&&<FormulaSheet/>}
-
-        {/* RESULTS */}
         {bottomTab==="results"&&<Results user={user}/>}
 
         {/* TOPICS */}
@@ -860,11 +1167,11 @@ function App(){
               <button onClick={()=>setScreen("home")} className="btn" style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",color:"#555",fontSize:18,flexShrink:0}}>←</button>
               <div>
                 <div style={{fontSize:20,fontWeight:900,color:"#fff"}}>{subj.label}</div>
-                <div style={{fontSize:10,color:"#333",fontFamily:"monospace"}}>{subj.topics.length} topics</div>
+                <div style={{fontSize:10,color:"#333",fontFamily:"monospace"}}>{subj.code?`BEC ${subj.code} · `:""}{subj.topics.length} topics</div>
               </div>
             </div>
             <div style={{position:"relative",marginBottom:14}}>
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search..." style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:12,color:"#fff",padding:"11px 14px 11px 38px",fontSize:14}}/>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search topics..." style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:12,color:"#fff",padding:"11px 14px 11px 38px",fontSize:14}}/>
               <div style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",color:"#333",fontSize:14}}>⌕</div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:5}}>
@@ -885,11 +1192,10 @@ function App(){
         {/* LEARN */}
         {screen==="learn"&&subj&&topic&&bottomTab==="learn"&&(
           <div style={{animation:"slideRight .35s ease"}}>
-            {/* Topic header */}
             <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:16}}>
               <button onClick={()=>setScreen("topics")} className="btn" style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",color:"#555",fontSize:18,flexShrink:0}}>←</button>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:10,color:subj.color,textTransform:"uppercase",letterSpacing:2,marginBottom:2}}>{subj.label}</div>
+                <div style={{fontSize:10,color:subj.color,textTransform:"uppercase",letterSpacing:2,marginBottom:2}}>{subj.label}{subj.code?` · BEC ${subj.code}`:""}</div>
                 <div style={{fontSize:16,fontWeight:900,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{topic}</div>
               </div>
               <button onClick={()=>{toggleBookmark();}} className="btn" style={{background:bookmarked?`${subj.color}18`:"#111",border:`1.5px solid ${bookmarked?subj.color:"#1e1e1e"}`,borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>
@@ -897,7 +1203,6 @@ function App(){
               </button>
             </div>
 
-            {/* Tabs */}
             <div style={{display:"flex",gap:4,marginBottom:18,background:"#111",borderRadius:12,padding:4}}>
               {[["notes","📘 Notes"],["exam","📝 Exam"],["tutor","🤖 Tutor"]].map(([id,lbl])=>(
                 <button key={id} onClick={()=>setStudyTab(id)} className="btn" style={{flex:1,padding:"9px 4px",borderRadius:9,background:studyTab===id?subj.color:"transparent",color:studyTab===id?"#000":"#444",fontSize:12,fontWeight:studyTab===id?800:400,transition:"all .2s",boxShadow:studyTab===id?"0 2px 10px rgba(0,0,0,0.3)":"none"}}>
@@ -913,7 +1218,6 @@ function App(){
         )}
       </main>
 
-      {/* BOTTOM NAV */}
       <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,10,0.97)",borderTop:"1px solid #151515",padding:"6px 8px 10px",zIndex:100,backdropFilter:"blur(12px)"}}>
         <div style={{display:"flex",maxWidth:680,margin:"0 auto",gap:2}}>
           {[["learn","📚","Study"],["bookmarks","🔖","Saved"],["formulas","📐","Formulas"],["results","📊","Results"]].map(([id,icon,lbl])=>{
