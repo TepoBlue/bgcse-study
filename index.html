@@ -7,9 +7,12 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0a0a;font-family:'Segoe UI',sans-serif;color:#fff;min-height:100vh;overflow-x:hidden}
+body{background:#0a0a0a;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.5}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:#39ff14;border-radius:4px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -19,12 +22,15 @@ body{background:#0a0a0a;font-family:'Segoe UI',sans-serif;color:#fff;min-height:
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 @keyframes menuSlide{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
-.glow-text{animation:glow 2s ease-in-out infinite}
-.btn{cursor:pointer;font-family:'Segoe UI',sans-serif;border:none;transition:all .2s cubic-bezier(.4,0,.2,1)}
+@keyframes tabFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.glow-text{font-family:'Poppins',sans-serif;animation:glow 2s ease-in-out infinite}
+.heading{font-family:'Poppins',sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace}
+.btn{cursor:pointer;font-family:'Inter',sans-serif;border:none;transition:all .2s cubic-bezier(.4,0,.2,1)}
 .btn:active{transform:scale(.95)}
 .card{transition:all .22s cubic-bezier(.4,0,.2,1)}
 .card:hover{transform:translateY(-2px)}
-input{font-family:'Segoe UI',sans-serif;outline:none;width:100%}
+input{font-family:'Inter',sans-serif;outline:none;width:100%}
 </style>
 </head>
 <body>
@@ -93,7 +99,6 @@ const SUBJECTS=[
     color:"#f59e0b",
     code:"0571",
     topics:[
-      // Section 1: General Physics
       "Length & Time Measurement",
       "Motion — Speed, Velocity & Acceleration",
       "Motion Graphs — Distance-Time & Speed-Time",
@@ -108,7 +113,6 @@ const SUBJECTS=[
       "Energy in Botswana — Solar, Wind & Hydro",
       "Work & Power",
       "Pressure — Solids, Fluids & Atmosphere",
-      // Section 2: Thermal Physics
       "Kinetic Particle Theory & States of Matter",
       "Evaporation & Gas Behaviour",
       "Boyle's Law & Gas Pressure",
@@ -117,7 +121,6 @@ const SUBJECTS=[
       "Specific Heat Capacity",
       "Latent Heat — Melting & Boiling",
       "Conduction, Convection & Radiation",
-      // Section 3: Waves, Light & Sound
       "General Wave Properties",
       "Transverse & Longitudinal Waves",
       "Light — Reflection & Plane Mirrors",
@@ -127,7 +130,6 @@ const SUBJECTS=[
       "Electromagnetic Spectrum",
       "Sound — Production & Propagation",
       "Sound — Echo, Pitch & Loudness",
-      // Section 4: Electricity & Magnetism
       "Magnetism & Magnetic Fields",
       "Static Electricity & Electric Charge",
       "Electric Current, EMF & Potential Difference",
@@ -139,7 +141,6 @@ const SUBJECTS=[
       "Force on a Current-Carrying Conductor",
       "DC Motor & Loudspeaker",
       "Introductory Electronics — Diodes & Transistors",
-      // Section 5: Atomic Physics
       "Radioactivity — Nature, Types & Detection",
       "Nuclear Structure, Isotopes & Half-Life",
       "Nuclear Fission, Fusion & Nuclear Energy"
@@ -152,7 +153,6 @@ const SUBJECTS=[
     color:"#10b981",
     code:"0570",
     topics:[
-      // Section 1: Matter
       "Particulate Nature of Matter & States of Matter",
       "Diffusion in Gases & Liquids",
       "Atomic Structure — Protons, Neutrons & Electrons",
@@ -164,7 +164,6 @@ const SUBJECTS=[
       "Ionic Bonding",
       "Covalent Bonding",
       "Metallic Bonding & Properties",
-      // Section 2: Chemical Reactions
       "Energy Changes — Exothermic & Endothermic",
       "Rates of Reaction",
       "Enzymes & Catalysts",
@@ -174,12 +173,10 @@ const SUBJECTS=[
       "Acids, Bases & pH",
       "Salts — Preparation & Purification",
       "Qualitative Analysis — Cation & Anion Tests",
-      // Section 3: Stoichiometry
       "Chemical Formulae & Balancing Equations",
       "The Mole Concept & Avogadro's Number",
       "Chemical Calculations — Empirical Formula & % Yield",
       "Quantitative Analysis & Acid-Base Titration",
-      // Section 4: Metals & Non-Metals
       "Properties of Metals & Reactivity Series",
       "Extraction of Metals — Iron & Aluminium",
       "Uses of Metals & Alloys",
@@ -188,12 +185,10 @@ const SUBJECTS=[
       "Carbon — Diamond, Graphite & Allotropes",
       "Carbonates & their Reactions",
       "Nitrogen & the Haber Process",
-      // Section 5: Chemistry in the Environment
       "Water — Properties, Hardness & Treatment",
       "Air — Composition, Pollution & Ozone Layer",
       "Fuels — Combustion & Fossil Fuels",
       "Recycling & Conservation of Resources",
-      // Section 6: Carbon Chemistry
       "Homologous Series & Structural Formulae",
       "Alkanes & Petroleum Fractions",
       "Alkenes — Properties & Addition Polymerisation",
@@ -250,7 +245,6 @@ const SUBJECTS=[
     color:"#8b5cf6",
     code:"0569",
     topics:[
-      // Biology component
       "Cell Structure & Organisation",
       "Movement of Substances — Diffusion, Osmosis & Active Transport",
       "Photosynthesis & Plant Nutrition",
@@ -265,7 +259,6 @@ const SUBJECTS=[
       "Genetics, DNA & Inheritance",
       "Evolution, Ecology & Environment",
       "Disease, Immunity & Human Impact",
-      // Chemistry component
       "States of Matter, Atomic Structure & Bonding",
       "The Periodic Table & Chemical Trends",
       "Chemical Equations & the Mole",
@@ -274,7 +267,6 @@ const SUBJECTS=[
       "Metals, Reactivity Series & Extraction",
       "Organic Chemistry — Alkanes, Alkenes & Alcohols",
       "Chemistry in the Environment — Water, Air & Fuels",
-      // Physics component
       "Motion, Forces & Newton's Laws",
       "Energy, Work & Power",
       "Pressure & Density",
@@ -410,14 +402,40 @@ async function ask(prompt,system){
   return d.text||"";
 }
 
-const getNotes=(s,t)=>ask(
-  `BGCSE Botswana ${s} notes for topic: "${t}". Return raw JSON only, no markdown fences:
+// ── CACHE (for AI notes — saves API calls on repeat topic views) ─────────────
+const CACHE_TTL=7*24*60*60*1000; // 7 days
+function cacheKey(kind,s,t){return `cache_${kind}_${s}_${t}`.replace(/\s+/g,"_").slice(0,180);}
+function getCached(kind,s,t){
+  try{
+    const raw=localStorage.getItem(cacheKey(kind,s,t));
+    if(!raw) return null;
+    const {data,ts}=JSON.parse(raw);
+    if(Date.now()-ts>CACHE_TTL){localStorage.removeItem(cacheKey(kind,s,t));return null;}
+    return data;
+  }catch{return null;}
+}
+function setCached(kind,s,t,data){
+  try{localStorage.setItem(cacheKey(kind,s,t),JSON.stringify({data,ts:Date.now()}));}catch{}
+}
+
+const getNotes=async(s,t,forceRefresh)=>{
+  if(!forceRefresh){
+    const cached=getCached("notes",s,t);
+    if(cached) return {...cached,_cached:true};
+  }
+  const r=await ask(
+    `BGCSE Botswana ${s} notes for topic: "${t}". Return raw JSON only, no markdown fences:
 {"summary":"2 clear sentences explaining what this topic is about",
 "keyPoints":["point 1 — explain clearly","point 2","point 3","point 4","point 5"],
 "formula":"key formula or equation for this topic, or null if none",
 "rememberThis":"one specific BEC exam technique tip for this topic — mention command words like State/Explain/Calculate as appropriate"}`,
-  `You are an expert BGCSE Botswana ${s} teacher (BEC syllabus, effective 2020). Give accurate, syllabus-specific notes. Return raw JSON only. No markdown, no preamble.`
-).then(r=>{try{return JSON.parse(r.replace(/```json|```/g,"").trim())}catch{return null}});
+    `You are an expert BGCSE Botswana ${s} teacher (BEC syllabus, effective 2020). Give accurate, syllabus-specific notes. Return raw JSON only. No markdown, no preamble.`
+  );
+  let parsed=null;
+  try{parsed=JSON.parse(r.replace(/```json|```/g,"").trim());}catch{}
+  if(parsed) setCached("notes",s,t,parsed);
+  return parsed;
+};
 
 const getExam=(s,t)=>ask(
   `Write a BGCSE Botswana ${s} exam question about "${t}". Return raw JSON only:
@@ -429,6 +447,19 @@ const getExam=(s,t)=>ask(
 ],
 "tip":"BEC examiner tip — mention the command word used and what examiners look for"}`,
   `You are a BGCSE Botswana ${s} examiner (BEC 2020 syllabus). Write exam-style questions matching BEC standards. Use correct BEC command words (State, Describe, Explain, Calculate, etc). Return raw JSON only.`
+).then(r=>{try{return JSON.parse(r.replace(/```json|```/g,"").trim())}catch{return null}});
+
+const getSteps=(s,t)=>ask(
+  `Create ONE step-by-step worked example for BGCSE Botswana ${s}, topic: "${t}". Return raw JSON only, no markdown fences:
+{"title":"short problem title",
+"problem":"the full example problem statement, with numbers",
+"keyFormula":"the main formula used, or null",
+"steps":[
+  {"heading":"short step title","explanation":"what to do and why, simple language","working":"the calculation/working shown for this step, or null","diagram":"a simple inline SVG string (viewBox '0 0 280 150', stroke based, no external refs/images, max 6 shapes) that visually helps THIS step, or null if not needed"}
+],
+"finalAnswer":"the final answer including correct units"}
+Keep it to 3-5 steps. Only include a diagram on the ONE step where a visual would genuinely help (e.g. a triangle, circuit, graph sketch, cell diagram). Most steps should have diagram:null.`,
+  `You are an expert BGCSE Botswana ${s} teacher creating a worked example for topic "${t}" (BEC syllabus 2020). When you include a diagram, return ONLY raw valid SVG markup as a JSON string value (starting with <svg, using viewBox="0 0 280 150", stroke="#39ff14" or stroke="#888", fill="none" where sensible, no <image> or external refs). Return raw JSON only, no markdown.`
 ).then(r=>{try{return JSON.parse(r.replace(/```json|```/g,"").trim())}catch{return null}});
 
 const chatTutor=(msgs,s,t)=>ask(
@@ -540,14 +571,17 @@ function Menu({user,onClose,onLogout,onNav,darkMode,setDarkMode}){
 function Notes({subject,topic,color}){
   const [data,setData]=useState(null);
   const [loading,setLoading]=useState(true);
-  const load=async()=>{setLoading(true);setData(null);try{setData(await getNotes(subject,topic))}catch{}setLoading(false)};
-  useEffect(()=>{load()},[topic]);
+  const load=async(force)=>{setLoading(true);setData(null);try{setData(await getNotes(subject,topic,force))}catch{}setLoading(false)};
+  useEffect(()=>{load(false)},[topic]);
 
   if(loading) return <div style={{paddingTop:8}}><Skel h={20} mb={14}/><Skel w="85%" mb={10}/><Skel w="70%" mb={20}/><Skel h={60} mb={10}/><Skel h={60} mb={10}/><Skel h={60}/></div>;
-  if(!data) return <GreenBtn onClick={load}>Retry ↺</GreenBtn>;
+  if(!data) return <GreenBtn onClick={()=>load(true)}>Retry ↺</GreenBtn>;
 
   return(
     <div style={{display:"flex",flexDirection:"column",gap:12,animation:"fadeUp .35s ease"}}>
+      {data._cached&&(
+        <div style={{fontSize:10,color:"#444",fontFamily:"'JetBrains Mono',monospace",textAlign:"center"}}>⚡ Loaded instantly from cache</div>
+      )}
       <div style={{background:"#111",border:`1.5px solid ${color}33`,borderRadius:16,padding:"16px"}}>
         <div style={{fontSize:10,letterSpacing:3,color,marginBottom:8,textTransform:"uppercase"}}>Overview</div>
         <div style={{color:"#ccc",fontSize:14,lineHeight:1.75}}>{data.summary}</div>
@@ -566,7 +600,7 @@ function Notes({subject,topic,color}){
       {data.formula&&(
         <div style={{background:"#111",border:`1px solid ${G}22`,borderRadius:16,padding:"14px 16px"}}>
           <div style={{fontSize:10,letterSpacing:3,color:"#444",marginBottom:6,textTransform:"uppercase"}}>Formula / Equation</div>
-          <div style={{fontFamily:"monospace",fontSize:16,color:G,letterSpacing:.5}}>{data.formula}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:16,color:G,letterSpacing:.5}}>{data.formula}</div>
         </div>
       )}
 
@@ -575,7 +609,7 @@ function Notes({subject,topic,color}){
         <div style={{color:"#c0a060",fontSize:13,lineHeight:1.65}}>{data.rememberThis}</div>
       </div>
 
-      <button onClick={load} className="btn" style={{padding:"10px",background:"#111",border:"1px solid #222",borderRadius:10,color:"#444",fontSize:12}}>Regenerate ↺</button>
+      <button onClick={()=>load(true)} className="btn" style={{padding:"10px",background:"#111",border:"1px solid #222",borderRadius:10,color:"#444",fontSize:12}}>Regenerate ↺</button>
     </div>
   );
 }
@@ -677,13 +711,14 @@ function Exam({subject,topic,color,user,onResult}){
 }
 
 // ── TUTOR ─────────────────────────────────────────────────────────────────────
-function Tutor({subject,topic,color,name}){
-  const [msgs,setMsgs]=useState([{role:"assistant",content:`Hey ${name}! 👋 Ready to master ${topic}? Ask me anything — I'll help you understand AND how to answer it in the exam!`}]);
+function Tutor({subject,topic,color,name,initialMsgs,onMsgsChange}){
+  const [msgs,setMsgs]=useState(()=>initialMsgs&&initialMsgs.length>0?initialMsgs:[{role:"assistant",content:`Hey ${name}! 👋 Ready to master ${topic}? Ask me anything — I'll help you understand AND how to answer it in the exam!`}]);
   const [input,setInput]=useState("");
   const [loading,setLoading]=useState(false);
   const bot=useRef();
 
   useEffect(()=>{bot.current?.scrollIntoView({behavior:"smooth"})},[msgs,loading]);
+  useEffect(()=>{onMsgsChange?.(msgs)},[msgs]);
 
   const send=async()=>{
     const t=input.trim();
@@ -696,9 +731,15 @@ function Tutor({subject,topic,color,name}){
   };
 
   const quick=["Explain simply","Worked example","Common mistakes","How is this examined?","What command words are used?"];
+  const exchanges=Math.floor((msgs.length-1)/2);
 
   return(
     <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
+      {exchanges>0&&(
+        <div style={{fontSize:10,color:"#444",textAlign:"center",padding:"2px 0 8px",fontFamily:"'JetBrains Mono',monospace"}}>
+          🧠 Remembers {exchanges} earlier {exchanges===1?"exchange":"exchanges"} in this conversation
+        </div>
+      )}
       <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:10,paddingBottom:10,maxHeight:"48vh"}}>
         {msgs.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",animation:"fadeUp .2s ease"}}>
@@ -723,6 +764,70 @@ function Tutor({subject,topic,color,name}){
         <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&send()} placeholder="Ask anything..." style={{flex:1,background:"transparent",border:"none",padding:"10px 0",fontSize:14,color:"#fff",borderRadius:0}}/>
         <button onClick={send} disabled={loading||!input.trim()} className="btn" style={{padding:"10px 16px",background:loading||!input.trim()?"#151515":G,border:"none",borderRadius:10,color:loading||!input.trim()?"#333":"#000",fontWeight:900,fontSize:16}}>↑</button>
       </div>
+    </div>
+  );
+}
+
+// ── STEPS (step-by-step worked example with diagrams) ────────────────────────
+function Steps({subject,topic,color}){
+  const [data,setData]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [visible,setVisible]=useState(0);
+
+  const load=async()=>{setLoading(true);setData(null);setVisible(0);try{setData(await getSteps(subject,topic))}catch{}setLoading(false)};
+  useEffect(()=>{load()},[topic]);
+
+  if(loading) return <div style={{paddingTop:8}}><Skel h={20} mb={14}/><Skel w="80%" mb={16}/><Skel h={70} mb={10}/><Skel h={70}/></div>;
+  if(!data) return <GreenBtn onClick={load}>Retry ↺</GreenBtn>;
+
+  const steps=data.steps||[];
+  const isLast=visible>=steps.length-1;
+
+  return(
+    <div style={{animation:"fadeUp .35s ease"}}>
+      <div style={{fontSize:10,letterSpacing:3,color:"#333",marginBottom:8,textTransform:"uppercase"}}>{data.title}</div>
+
+      <div style={{background:"#111",border:`1.5px solid ${color}33`,borderRadius:16,padding:"16px",marginBottom:14}}>
+        <div style={{color:"#ddd",fontSize:14,lineHeight:1.7}}>{data.problem}</div>
+      </div>
+
+      {data.keyFormula&&(
+        <div style={{background:`${color}10`,border:`1px solid ${color}33`,borderRadius:12,padding:"10px 14px",marginBottom:16,fontFamily:"'JetBrains Mono',monospace",fontSize:14,color}}>
+          📌 {data.keyFormula}
+        </div>
+      )}
+
+      {steps.slice(0,visible+1).map((step,i)=>(
+        <div key={i} style={{borderLeft:`3px solid ${color}`,paddingLeft:14,marginBottom:20,animation:"fadeUp .3s ease"}}>
+          <div style={{background:color,color:"#000",borderRadius:"50%",width:26,height:26,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>
+            {i+1}
+          </div>
+          <div style={{fontWeight:800,fontSize:14,color:"#fff",marginBottom:6,fontFamily:"'Poppins',sans-serif"}}>{step.heading}</div>
+          <div style={{color:"#bbb",fontSize:13,lineHeight:1.65,marginBottom:step.working||step.diagram?8:0}}>{step.explanation}</div>
+          {step.working&&(
+            <div style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:10,padding:"10px 12px",fontFamily:"'JetBrains Mono',monospace",fontSize:13,color:"#8aca8a",marginBottom:8,whiteSpace:"pre-wrap"}}>
+              {step.working}
+            </div>
+          )}
+          {step.diagram&&(
+            <div style={{background:"#0a0a0a",border:`1px solid ${color}22`,borderRadius:10,padding:10,marginBottom:4,display:"flex",justifyContent:"center"}}
+                 dangerouslySetInnerHTML={{__html:step.diagram}}/>
+          )}
+        </div>
+      ))}
+
+      {!isLast?(
+        <GreenBtn full onClick={()=>setVisible(v=>v+1)}>Next Step →</GreenBtn>
+      ):(
+        <div style={{background:`${G}0d`,border:`1.5px solid ${G}`,borderRadius:16,padding:16,textAlign:"center",animation:"fadeUp .3s ease"}}>
+          <div style={{fontSize:20,marginBottom:4}}>✅</div>
+          <div style={{fontWeight:800,color:"#fff",fontSize:15}}>{data.finalAnswer}</div>
+        </div>
+      )}
+
+      {isLast&&(
+        <button onClick={load} className="btn" style={{padding:"10px",background:"#111",border:"1px solid #222",borderRadius:10,color:"#444",fontSize:12,marginTop:10,width:"100%"}}>New Example ↺</button>
+      )}
     </div>
   );
 }
@@ -757,7 +862,6 @@ function FormulaSheet(){
         ))}
       </div>
 
-      {/* BEC Command Words reference */}
       <div style={{marginTop:20,background:"rgba(240,165,0,0.05)",border:"1px solid rgba(240,165,0,0.15)",borderRadius:16,padding:"16px"}}>
         <div style={{fontSize:10,letterSpacing:3,color:"#f0a500",marginBottom:12,textTransform:"uppercase"}}>📋 BEC Command Words</div>
         {[
@@ -1067,8 +1171,10 @@ function App(){
   const [search,setSearch]=useState("");
   const [menuOpen,setMenuOpen]=useState(false);
   const [darkMode,setDarkMode]=useState(true);
+  const [tutorMemory,setTutorMemory]=useState({});
 
   const subj=SUBJECTS.find(s=>s.id===subject);
+  const tutorKey=subj&&topic?`${subj.label}|||${topic}`:null;
 
   const saveResult=(r)=>{
     const k=`r_${user.code}`;
@@ -1141,7 +1247,7 @@ function App(){
                   <div style={{position:"absolute",top:-20,right:-20,fontSize:60,opacity:.05}}>{s.icon}</div>
                   {s.code&&<div style={{fontSize:8,color:s.color,fontFamily:"monospace",marginBottom:4,letterSpacing:1}}>BEC {s.code}</div>}
                   <div style={{fontSize:28,marginBottom:8}}>{s.icon}</div>
-                  <div style={{fontWeight:800,fontSize:14,color:"#fff",marginBottom:4}}>{s.label}</div>
+                  <div style={{fontWeight:800,fontSize:14,color:"#fff",marginBottom:4,fontFamily:"'Poppins',sans-serif"}}>{s.label}</div>
                   <div style={{fontSize:10,color:s.color,fontFamily:"monospace"}}>{s.topics.length} topics</div>
                 </div>
               ))}
@@ -1159,7 +1265,7 @@ function App(){
             <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:18}}>
               <button onClick={()=>setScreen("home")} className="btn" style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",color:"#555",fontSize:18,flexShrink:0}}>←</button>
               <div>
-                <div style={{fontSize:20,fontWeight:900,color:"#fff"}}>{subj.label}</div>
+                <div style={{fontSize:20,fontWeight:900,color:"#fff",fontFamily:"'Poppins',sans-serif"}}>{subj.label}</div>
                 <div style={{fontSize:10,color:"#333",fontFamily:"monospace"}}>{subj.code?`BEC ${subj.code} · `:""}{subj.topics.length} topics</div>
               </div>
             </div>
@@ -1189,7 +1295,7 @@ function App(){
               <button onClick={()=>setScreen("topics")} className="btn" style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",color:"#555",fontSize:18,flexShrink:0}}>←</button>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:10,color:subj.color,textTransform:"uppercase",letterSpacing:2,marginBottom:2}}>{subj.label}{subj.code?` · BEC ${subj.code}`:""}</div>
-                <div style={{fontSize:16,fontWeight:900,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{topic}</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:"'Poppins',sans-serif"}}>{topic}</div>
               </div>
               <button onClick={()=>{toggleBookmark();}} className="btn" style={{background:bookmarked?`${subj.color}18`:"#111",border:`1.5px solid ${bookmarked?subj.color:"#1e1e1e"}`,borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>
                 🔖
@@ -1197,16 +1303,19 @@ function App(){
             </div>
 
             <div style={{display:"flex",gap:4,marginBottom:18,background:"#111",borderRadius:12,padding:4}}>
-              {[["notes","📘 Notes"],["exam","📝 Exam"],["tutor","🤖 Tutor"]].map(([id,lbl])=>(
+              {[["notes","📘 Notes"],["steps","🪜 Steps"],["exam","📝 Exam"],["tutor","🤖 Tutor"]].map(([id,lbl])=>(
                 <button key={id} onClick={()=>setStudyTab(id)} className="btn" style={{flex:1,padding:"9px 4px",borderRadius:9,background:studyTab===id?subj.color:"transparent",color:studyTab===id?"#000":"#444",fontSize:12,fontWeight:studyTab===id?800:400,transition:"all .2s",boxShadow:studyTab===id?"0 2px 10px rgba(0,0,0,0.3)":"none"}}>
                   {lbl}
                 </button>
               ))}
             </div>
 
-            {studyTab==="notes"&&<Notes subject={subj.label} topic={topic} color={subj.color}/>}
-            {studyTab==="exam"&&<Exam subject={subj.label} topic={topic} color={subj.color} user={user} onResult={saveResult}/>}
-            {studyTab==="tutor"&&<Tutor subject={subj.label} topic={topic} color={subj.color} name={user.name.split(" ")[0]}/>}
+            <div key={studyTab} style={{animation:"tabFade .25s ease"}}>
+              {studyTab==="notes"&&<Notes subject={subj.label} topic={topic} color={subj.color}/>}
+              {studyTab==="steps"&&<Steps subject={subj.label} topic={topic} color={subj.color}/>}
+              {studyTab==="exam"&&<Exam subject={subj.label} topic={topic} color={subj.color} user={user} onResult={saveResult}/>}
+              {studyTab==="tutor"&&<Tutor subject={subj.label} topic={topic} color={subj.color} name={user.name.split(" ")[0]} initialMsgs={tutorMemory[tutorKey]} onMsgsChange={(m)=>setTutorMemory(tm=>({...tm,[tutorKey]:m}))}/>}
+            </div>
           </div>
         )}
       </main>
@@ -1232,6 +1341,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
+
 
 
 
