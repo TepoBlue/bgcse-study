@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
 // ── Access Codes (teacher controls these) ─────────────────────────────────────
+
 const VALID_CODES = ["BGCSE2024", "STUDY001", "STUDY002", "STUDY003", "STUDY004", "STUDY005"];
+
 const TEACHER_CODE = "TEACHER123";
 
 // ── BGCSE Syllabus ────────────────────────────────────────────────────────────
+
 const SUBJECTS = [
   { id: "maths", label: "Mathematics", icon: "∑", color: "#3b82f6",
     topics: ["Number & Computation","Fractions & Percentages","Algebra & Expressions","Linear Equations","Simultaneous Equations","Quadratic Equations","Sequences & Series","Functions & Graphs","Geometry & Angles","Pythagoras Theorem","Circle Theorems","Trigonometry","Mensuration","Vectors","Matrices","Statistics & Probability","Transformation Geometry","Sets"] },
@@ -17,48 +20,130 @@ const SUBJECTS = [
 ];
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
+
 const storage = {
   get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
 
-// ── Claude API ────────────────────────────────────────────────────────────────
-async function callClaude(messages, system) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system, messages }),
+// ── Hugging Face API ──────────────────────────────────────────────────────────
+// Replace YOUR_HF_TOKEN_HERE with your actual Hugging Face API token
+// Get it free at: https://huggingface.co/settings/tokens
+
+const HF_TOKEN = "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";
+const HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.3";
+
+async function callHuggingFace(prompt, retries = 2) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(
+        `https://api-inference.huggingface.co/models/${HF_MODEL}`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${HF_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            inputs: prompt,
+            parameters: {
+              max_new_tokens: 900,
+              temperature: 0.7,
+              return_full_text: false,
+            },
+          }),
+        }
+      );
+
+      // Model still loading — wait and retry
+      if (res.status === 503) {
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 3000));
+          continue;
+        }
+        throw new Error("Model is loading, please try again in a moment.");
+      }
+
+      const data = await res.json();
+
+      // HF returns an array: [{ generated_text: "..." }]
+      if (Array.isArray(data) && data[0]?.generated_text) {
+        return data[0].generated_text.trim();
+      }
+
+      // Sometimes returns error object
+      if (data.error) throw new Error(data.error);
+
+      throw new Error("Unexpected response from AI.");
+    } catch (err) {
+      if (attempt === retries) throw err;
+    }
+  }
+}
+
+// Build Mistral instruct-style prompt
+function buildPrompt(systemMsg, userMsg) {
+  return `<s>[INST] ${systemMsg}\n\n${userMsg} [/INST]`;
+}
+
+// Build multi-turn chat prompt for tutor
+function buildChatPrompt(systemMsg, messages) {
+  let prompt = `<s>`;
+  messages.forEach((m, i) => {
+    if (m.role === "user") {
+      if (i === 0) {
+        prompt += `[INST] ${systemMsg}\n\n${m.content} [/INST]`;
+      } else {
+        prompt += `[INST] ${m.content} [/INST]`;
+      }
+    } else {
+      prompt += ` ${m.content} </s>`;
+    }
   });
-  const data = await res.json();
-  return data.content?.map(b => b.text || "").join("") || "";
+  return prompt;
 }
 
 async function generateNotes(subject, topic) {
-  const prompt = `Write clear BGCSE study notes for "${topic}" in ${subject}. Return ONLY valid JSON:
+  const system = "You are a BGCSE teacher in Botswana. Return ONLY raw JSON, no markdown, no explanation.";
+  const user = `Write clear BGCSE study notes for "${topic}" in ${subject}. Return ONLY valid JSON:
 {"summary":"2-3 sentence overview","keyPoints":["point 1","point 2","point 3","point 4","point 5"],"definitions":[{"term":"word","meaning":"definition"}],"formula":"key formula if applicable (or null)","example":"one quick example","rememberThis":"most important thing to remember for the exam"}`;
-  const raw = await callClaude([{role:"user",content:prompt}], "You are a BGCSE teacher in Botswana. Return ONLY raw JSON, no markdown.");
-  return JSON.parse(raw.replace(/```json|```/g,"").trim());
+
+  const raw = await callHuggingFace(buildPrompt(system, user));
+  // Extract JSON from response
+  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("Could not parse notes response.");
+  return JSON.parse(jsonMatch[0]);
 }
 
 async function generateExamQuestion(subject, topic) {
-  const prompt = `Create a BGCSE exam-style question for "${topic}" in ${subject}. Return ONLY valid JSON:
+  const system = "You are a BGCSE examiner in Botswana. Return ONLY raw JSON, no markdown, no explanation.";
+  const user = `Create a BGCSE exam-style question for "${topic}" in ${subject}. Return ONLY valid JSON:
 {"question":"full question text","marks":4,"type":"structured","parts":[{"part":"(a)","question":"sub question","marks":2,"answer":"model answer","working":"step by step working"},{"part":"(b)","question":"sub question","marks":2,"answer":"model answer","working":"step by step working"}],"examinerNote":"common mistake or tip"}`;
-  const raw = await callClaude([{role:"user",content:prompt}], "You are a BGCSE examiner in Botswana. Return ONLY raw JSON, no markdown.");
-  return JSON.parse(raw.replace(/```json|```/g,"").trim());
+
+  const raw = await callHuggingFace(buildPrompt(system, user));
+  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("Could not parse exam response.");
+  return JSON.parse(jsonMatch[0]);
 }
 
 async function chatWithTutor(messages, subject, topic) {
-  const system = `You are an expert BGCSE tutor in Botswana helping a student with ${subject}${topic ? `, specifically "${topic}"` : ""}. 
+  const system = `You are an expert BGCSE tutor in Botswana helping a student with ${subject}${topic ? `, specifically "${topic}"` : ""}.
 Be encouraging, clear, and use step-by-step explanations. Keep answers concise but complete. Use plain text only.`;
-  return callClaude(messages, system);
+
+  // For tutor, only send last 6 messages to keep prompt short
+  const recentMessages = messages.slice(-6);
+  const prompt = buildChatPrompt(system, recentMessages);
+  return callHuggingFace(prompt);
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
+
 const Skel = ({ w="100%", h=16, mb=8 }) => (
   <div style={{width:w,height:h,marginBottom:mb,borderRadius:5,background:"rgba(255,255,255,0.06)",animation:"shimmer 1.4s infinite"}} />
 );
 
 // ── Login Screen ──────────────────────────────────────────────────────────────
+
 function LoginScreen({ onLogin }) {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -125,20 +210,39 @@ function LoginScreen({ onLogin }) {
 }
 
 // ── Notes Tab ─────────────────────────────────────────────────────────────────
+
 function NotesTab({ subject, topic, color }) {
   const [notes, setNotes] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const load = async () => {
-    setLoading(true); setNotes(null);
-    try { setNotes(await generateNotes(subject, topic)); } catch {}
+    setLoading(true); setNotes(null); setError(null);
+    try { setNotes(await generateNotes(subject, topic)); }
+    catch (e) { setError(e.message || "Failed to load notes. Please try again."); }
     setLoading(false);
   };
+
   useEffect(() => { load(); }, [topic]);
 
   return (
     <div style={{animation:"fadeIn 0.3s ease"}}>
-      {loading && <div>{[100,80,60,90,70].map((w,i)=><Skel key={i} w={`${w}%`} h={i===0?20:14} mb={12}/>)}</div>}
+      {loading && (
+        <div>
+          <div style={{color:"#3a4a6a",fontSize:12,fontFamily:"'IBM Plex Mono'",marginBottom:12,textAlign:"center"}}>
+            ⏳ Loading notes via AI...
+          </div>
+          {[100,80,60,90,70].map((w,i)=><Skel key={i} w={`${w}%`} h={i===0?20:14} mb={12}/>)}
+        </div>
+      )}
+      {error && (
+        <div style={{background:"rgba(255,92,141,0.08)",border:"1px solid rgba(255,92,141,0.2)",borderRadius:12,padding:"16px 18px",marginBottom:16}}>
+          <div style={{color:"#ff5c8d",fontSize:13,marginBottom:10}}>{error}</div>
+          <button onClick={load} style={{padding:"9px 18px",background:"rgba(255,92,141,0.1)",border:"1px solid rgba(255,92,141,0.3)",borderRadius:8,color:"#ff5c8d",fontSize:13,cursor:"pointer"}}>
+            Try Again ↺
+          </button>
+        </div>
+      )}
       {notes && (
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           {/* Summary */}
@@ -200,18 +304,22 @@ function NotesTab({ subject, topic, color }) {
 }
 
 // ── Exam Questions Tab ────────────────────────────────────────────────────────
+
 function ExamTab({ subject, topic, color, student, onResult }) {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [revealed, setRevealed] = useState({});
   const [score, setScore] = useState(null);
   const [selfMark, setSelfMark] = useState({});
 
   const load = async () => {
-    setLoading(true); setExam(null); setRevealed({}); setScore(null); setSelfMark({});
-    try { setExam(await generateExamQuestion(subject, topic)); } catch {}
+    setLoading(true); setExam(null); setRevealed({}); setScore(null); setSelfMark({}); setError(null);
+    try { setExam(await generateExamQuestion(subject, topic)); }
+    catch (e) { setError(e.message || "Failed to load question. Please try again."); }
     setLoading(false);
   };
+
   useEffect(() => { load(); }, [topic]);
 
   const revealPart = (i) => setRevealed(r=>({...r,[i]:true}));
@@ -230,7 +338,22 @@ function ExamTab({ subject, topic, color, student, onResult }) {
 
   return (
     <div style={{animation:"fadeIn 0.3s ease"}}>
-      {loading && <div>{[90,70,100,60,80].map((w,i)=><Skel key={i} w={`${w}%`} h={i===0?20:14} mb={14}/>)}</div>}
+      {loading && (
+        <div>
+          <div style={{color:"#3a4a6a",fontSize:12,fontFamily:"'IBM Plex Mono'",marginBottom:12,textAlign:"center"}}>
+            ⏳ Generating exam question...
+          </div>
+          {[90,70,100,60,80].map((w,i)=><Skel key={i} w={`${w}%`} h={i===0?20:14} mb={14}/>)}
+        </div>
+      )}
+      {error && (
+        <div style={{background:"rgba(255,92,141,0.08)",border:"1px solid rgba(255,92,141,0.2)",borderRadius:12,padding:"16px 18px",marginBottom:16}}>
+          <div style={{color:"#ff5c8d",fontSize:13,marginBottom:10}}>{error}</div>
+          <button onClick={load} style={{padding:"9px 18px",background:"rgba(255,92,141,0.1)",border:"1px solid rgba(255,92,141,0.3)",borderRadius:8,color:"#ff5c8d",fontSize:13,cursor:"pointer"}}>
+            Try Again ↺
+          </button>
+        </div>
+      )}
       {exam && (
         <div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -266,7 +389,6 @@ function ExamTab({ subject, topic, color, student, onResult }) {
                     <div style={{fontFamily:"'IBM Plex Mono'",fontSize:10,letterSpacing:2,color:"#4ade80",marginBottom:4,textTransform:"uppercase"}}>Model Answer</div>
                     <div style={{color:"#90c090",fontSize:13,lineHeight:1.6}}>{part.answer}</div>
                   </div>
-
                   {!selfMark[i] && selfMark[i] !== 0 && (
                     <div>
                       <div style={{color:"#5a6a8a",fontSize:12,marginBottom:8,fontFamily:"'IBM Plex Mono'"}}>How many marks did you get?</div>
@@ -312,6 +434,7 @@ function ExamTab({ subject, topic, color, student, onResult }) {
 }
 
 // ── AI Tutor Tab ──────────────────────────────────────────────────────────────
+
 function TutorTab({ subject, topic, color, studentName }) {
   const [messages, setMessages] = useState([{role:"assistant",content:`Hi ${studentName}! 👋 I'm your BGCSE AI tutor. I'm here to help you with **${topic}** in ${subject}. Ask me anything — questions, explanations, or "I don't understand..." and I'll help!`}]);
   const [input, setInput] = useState("");
@@ -328,8 +451,7 @@ function TutorTab({ subject, topic, color, studentName }) {
     setInput("");
     setLoading(true);
     try {
-      const apiMsgs = newMsgs.map(m=>({role:m.role,content:m.content}));
-      const reply = await chatWithTutor(apiMsgs, subject, topic);
+      const reply = await chatWithTutor(newMsgs, subject, topic);
       setMessages(m=>[...m,{role:"assistant",content:reply}]);
     } catch {
       setMessages(m=>[...m,{role:"assistant",content:"Sorry, I had trouble connecting. Please try again!"}]);
@@ -378,6 +500,7 @@ function TutorTab({ subject, topic, color, studentName }) {
 }
 
 // ── Results / Progress ────────────────────────────────────────────────────────
+
 function ResultsView({ student }) {
   const results = storage.get(`results_${student.code}`) || [];
   const bySubject = SUBJECTS.map(s=>({
@@ -456,6 +579,7 @@ function ResultsView({ student }) {
 }
 
 // ── Teacher Dashboard ─────────────────────────────────────────────────────────
+
 function TeacherDashboard({ onLogout }) {
   const allResults = [];
   VALID_CODES.forEach(code => {
@@ -477,6 +601,7 @@ function TeacherDashboard({ onLogout }) {
         <div style={{fontFamily:"'IBM Plex Mono'",fontSize:15,fontWeight:500}}>BGCSE<span style={{color:"#3b82f6"}}>.</span>study <span style={{color:"#3a4a6a",fontSize:11}}>/ Teacher</span></div>
         <button onClick={onLogout} style={{background:"none",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"6px 14px",color:"#5a6a8a",fontSize:12,cursor:"pointer"}}>Logout</button>
       </header>
+
       <div style={{maxWidth:680,margin:"0 auto",padding:"28px 20px 60px"}}>
         <div style={{marginBottom:28}}>
           <div style={{fontFamily:"'Lora',serif",fontSize:24,fontStyle:"italic",marginBottom:4}}>Teacher Dashboard</div>
@@ -528,6 +653,7 @@ function TeacherDashboard({ onLogout }) {
 }
 
 // ── Main App ──────────────────────────────────────────────────────────────────
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [subject, setSubject] = useState(null);
@@ -535,7 +661,7 @@ export default function App() {
   const [tab, setTab] = useState("notes");
   const [screen, setScreen] = useState("home");
   const [search, setSearch] = useState("");
-  const [bottomTab, setBottomTab] = useState("learn"); // learn | results
+  const [bottomTab, setBottomTab] = useState("learn");
 
   const subjectData = SUBJECTS.find(s=>s.id===subject);
 
