@@ -14,6 +14,28 @@ const send = (status, body) =>
   });
 
 export default async (request) => {
+  // TEMPORARY CHECK: open /api/ai?check=1 in the browser to see why AI fails.
+  // It never shows your token. Remove this block once Notes works.
+  if (request.method === "GET" && new URL(request.url).searchParams.get("check") === "1") {
+    const tk = Netlify.env.get("HF_TOKEN");
+    const mdl = Netlify.env.get("HF_MODEL") || DEFAULT_MODEL;
+    const out = { token_set: !!tk, token_starts_with_hf: !!tk && tk.startsWith("hf_"), model: mdl };
+    if (!tk) return send(200, out);
+    try {
+      const r = await fetch(API_URL, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + tk, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: mdl, messages: [{ role: "user", content: "Say hi" }], max_tokens: 5 }),
+      });
+      out.hf_status = r.status;
+      out.hf_reply = (await r.text()).slice(0, 300);
+    } catch (e) {
+      out.hf_status = "request_failed";
+      out.hf_reply = String(e && e.message ? e.message : e).slice(0, 300);
+    }
+    return send(200, out);
+  }
+
   if (request.method !== "POST") return send(405, { error: "method_not_allowed" });
 
   // Only allow calls coming from this site, so strangers cannot use your token.
